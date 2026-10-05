@@ -3,7 +3,6 @@
 <html>
 
 <head>
-
   <meta charset="UTF-8">
 
   <meta
@@ -11,241 +10,189 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Portfolio AR Video</title>
+  <title>AR Video</title>
 
-
-  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
 
-  <!-- AR.js -->
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
 
-
   <style>
-
     html,
     body {
-
       margin: 0;
       padding: 0;
-
       width: 100%;
       height: 100%;
-
       overflow: hidden;
-
     }
-
   </style>
-
 </head>
 
 
 <body>
 
 
-  <!-- =====================================
-       VIDEO SOURCE
-       ===================================== -->
+<a-scene
 
-  <video
-    id="portfolioVideo"
+  embedded
 
-    src="assets/portfolio.mp4"
+  vr-mode-ui="enabled: false"
 
-    autoplay
-    loop
-    muted
-    playsinline
+  renderer="
+    alpha: true;
+    antialias: true;
+  "
 
-    crossorigin="anonymous"
-
-    style="display:none;">
-
-  </video>
+  arjs="
+    sourceType: webcam;
+    trackingMethod: best;
+    debugUIEnabled: false;
+  "
+>
 
 
+  <!-- ==============================
+       VIDEO
+       ============================== -->
 
-  <!-- =====================================
-       AR SCENE
-       ===================================== -->
+  <a-assets>
 
-  <a-scene
+    <video
 
-    embedded
+      id="portfolioVideo"
 
-    vr-mode-ui="enabled: false"
+      src="portfolio.mp4"
 
-    renderer="
-      antialias: true;
-      alpha: true;
-    "
+      loop
 
-    arjs="
-      sourceType: webcam;
-      trackingMethod: best;
-      debugUIEnabled: false;
-    "
+      muted
 
+      playsinline
+
+      webkit-playsinline
+
+      crossorigin="anonymous"
+
+    ></video>
+
+  </a-assets>
+
+
+  <!-- ==============================
+       MARKER
+       ============================== -->
+
+  <a-marker
+
+    id="marker"
+
+    type="pattern"
+
+    url="assets/marker.patt"
   >
 
 
-    <!-- ===================================
-         ASSETS
-         =================================== -->
+    <!--
+      THIS IS THE VIDEO.
 
-    <a-assets>
+      It is INSIDE the marker.
 
-      <video
-        id="videoTexture"
+      Therefore it inherits the marker's
+      position, rotation and scale.
+    -->
 
-        src="assets/portfolio.mp4"
+    <a-video
 
-        autoplay
-        loop
-        muted
-        playsinline
+      id="video"
 
-        crossorigin="anonymous">
+      src="#portfolioVideo"
 
-      </video>
+      width="2"
 
-    </a-assets>
+      height="1.125"
 
+      position="0 0.5 0"
 
+      rotation="-90 0 0"
 
-    <!-- ===================================
-         MARKER
-         =================================== -->
+    ></a-video>
 
-    <a-marker
 
-      id="marker"
+  </a-marker>
 
-      type="pattern"
 
-      url="assets/marker.patt"
-    >
+  <!-- CAMERA -->
 
+  <a-entity camera></a-entity>
 
-      <!-- =================================
-           VIDEO
-           ================================= -->
 
-      <a-video
+</a-scene>
 
-        id="videoPlane"
 
-        src="#videoTexture"
 
-        width="1.8"
+<script>
 
-        height="1.0125"
 
-        position="0 0.5 0"
+const marker =
+  document.querySelector("#marker");
 
-        rotation="-90 0 0"
 
-      >
-      </a-video>
+const video =
+  document.querySelector("#portfolioVideo");
 
 
+/*
+========================================
+MARKER FOUND
+========================================
+*/
 
-      <!-- =================================
-           OPTIONAL TITLE
-           ================================= -->
+marker.addEventListener(
+  "markerFound",
+  async function () {
 
-      <a-text
+    console.log("MARKER FOUND");
 
-        value="PORTFOLIO"
+    try {
 
-        position="0 0.05 0"
+      await video.play();
 
-        rotation="-90 0 0"
+      console.log("VIDEO PLAYING");
 
-        align="center"
+    }
 
-        width="2"
+    catch (error) {
 
-        color="white"
+      console.error(
+        "VIDEO PLAY ERROR:",
+        error
+      );
 
-      >
-      </a-text>
+    }
 
+  }
+);
 
-    </a-marker>
 
+/*
+========================================
+MARKER LOST
+========================================
+*/
 
+marker.addEventListener(
+  "markerLost",
+  function () {
 
-    <!-- ===================================
-         CAMERA
-         =================================== -->
+    console.log("MARKER LOST");
 
-    <a-entity camera></a-entity>
+  }
+);
 
 
-  </a-scene>
-
-
-
-  <script>
-
-
-    const marker =
-      document.querySelector("#marker");
-
-
-    const video =
-      document.querySelector("#videoTexture");
-
-
-    /*
-      ======================================
-      MARKER FOUND
-      ======================================
-    */
-
-    marker.addEventListener(
-      "markerFound",
-      () => {
-
-        console.log("MARKER FOUND");
-
-        video.play().catch(
-          error => {
-
-            console.log(
-              "Video playback requires interaction:",
-              error
-            );
-
-          }
-        );
-
-      }
-    );
-
-
-    /*
-      ======================================
-      MARKER LOST
-      ======================================
-    */
-
-    marker.addEventListener(
-      "markerLost",
-      () => {
-
-        console.log("MARKER LOST");
-
-      }
-    );
-
-
-  </script>
+</script>
 
 
 </body>
-
 </html>
 ```
