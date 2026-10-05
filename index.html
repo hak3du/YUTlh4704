@@ -1,7 +1,9 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
@@ -27,10 +29,6 @@
       background: transparent;
     }
 
-    /*
-      DEBUG STATUS
-    */
-
     #status {
       position: fixed;
       top: 15px;
@@ -50,86 +48,6 @@
       font-size: 14px;
     }
 
-
-    /*
-      FLOATING VIDEO CARD
-    */
-
-    #videoCard {
-
-      position: fixed;
-
-      width: 70vw;
-      max-width: 500px;
-
-      aspect-ratio: 16 / 9;
-
-      left: 50%;
-      top: 32%;
-
-      transform: translate(-50%, -50%);
-
-      background: black;
-
-      border-radius: 16px;
-
-      overflow: hidden;
-
-      border: 3px solid white;
-
-      box-shadow:
-        0 20px 60px rgba(0,0,0,.6);
-
-      z-index: 9999;
-
-      display: none;
-
-    }
-
-
-    #youtube {
-
-      width: 100%;
-      height: 100%;
-
-      border: 0;
-
-      display: block;
-
-    }
-
-
-    /*
-      LABEL UNDER VIDEO
-    */
-
-    #label {
-
-      position: fixed;
-
-      left: 50%;
-      top: calc(32% + 210px);
-
-      transform: translateX(-50%);
-
-      z-index: 9999;
-
-      padding: 8px 16px;
-
-      border-radius: 20px;
-
-      background: rgba(0,0,0,.8);
-
-      color: white;
-
-      font-family: Arial, sans-serif;
-
-      font-size: 13px;
-
-      display: none;
-
-    }
-
   </style>
 </head>
 
@@ -141,35 +59,6 @@
 
   <div id="status">
     Looking for marker...
-  </div>
-
-
-  <!-- FLOATING VIDEO -->
-
-  <div id="videoCard">
-
-    <iframe
-      id="youtube"
-
-      title="Portfolio Video"
-
-      src="portfolio.mp4"
-
-      allow="
-        autoplay;
-        encrypted-media;
-        picture-in-picture;
-        fullscreen
-      "
-
-      allowfullscreen>
-    </iframe>
-
-  </div>
-
-
-  <div id="label">
-    PORTFOLIO VIDEO
   </div>
 
 
@@ -198,6 +87,33 @@
 
 
     <!-- =================================
+         VIDEO ASSET
+         ================================= -->
+
+    <a-assets>
+
+      <video
+
+        id="portfolioVideo"
+
+        src="portfolio.mp4"
+
+        loop
+
+        muted
+
+        playsinline
+
+        webkit-playsinline
+
+        crossorigin="anonymous"
+
+      ></video>
+
+    </a-assets>
+
+
+    <!-- =================================
          MARKER
          ================================= -->
 
@@ -211,14 +127,16 @@
 
     >
 
-      <!--
-        THIS IS A REAL AR OBJECT.
 
-        It should appear directly above
-        the physical marker.
-      -->
+      <!-- =================================
+           VIDEO REPLACES THE OLD PLANE
+           ================================= -->
 
-      <a-plane
+      <a-video
+
+        id="videoPlane"
+
+        src="#portfolioVideo"
 
         position="0 0.5 0"
 
@@ -226,36 +144,9 @@
 
         width="1.8"
 
-        height="1"
+        height="1.0125"
 
-        color="#111"
-
-        opacity="0.9"
-
-      >
-
-      </a-plane>
-
-
-      <!-- AR TITLE -->
-
-      <a-text
-
-        value="PORTFOLIO"
-
-        position="0 0.55 0"
-
-        rotation="-90 0 0"
-
-        align="center"
-
-        width="3"
-
-        color="white"
-
-      >
-
-      </a-text>
+      ></a-video>
 
 
     </a-marker>
@@ -271,32 +162,12 @@
 
   <script>
 
-    /*
-      ======================================
-      CONFIG
-      ======================================
-    */
-
-    const VIDEO_ID = "YOUR_VIDEO_ID";
-
-
-    /*
-      ======================================
-      ELEMENTS
-      ======================================
-    */
 
     const marker =
       document.querySelector("#marker");
 
-    const videoCard =
-      document.querySelector("#videoCard");
-
-    const youtube =
-      document.querySelector("#youtube");
-
-    const label =
-      document.querySelector("#label");
+    const video =
+      document.querySelector("#portfolioVideo");
 
     const status =
       document.querySelector("#status");
@@ -317,25 +188,21 @@
         status.innerText =
           "✓ MARKER DETECTED";
 
-        /*
-          Show floating HTML video
-        */
-
-        videoCard.style.display = "block";
-
-        label.style.display = "block";
-
 
         /*
-          IMPORTANT:
-          muted autoplay is much more
-          likely to be permitted.
+          Start the video.
         */
 
-        youtube.src =
-          "https://www.youtube.com/embed/" +
-          VIDEO_ID +
-          "?autoplay=1&mute=1&playsinline=1";
+        video.play().catch(
+          function(error) {
+
+            console.log(
+              "Video autoplay blocked:",
+              error
+            );
+
+          }
+        );
 
       }
     );
@@ -355,13 +222,6 @@
 
         status.innerText =
           "Marker lost — point camera at marker";
-
-
-        videoCard.style.display = "none";
-
-        label.style.display = "none";
-
-        youtube.src = "";
 
       }
     );
@@ -391,3 +251,4 @@
 
 </body>
 </html>
+```
