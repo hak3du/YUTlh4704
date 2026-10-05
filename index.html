@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+
   <meta charset="UTF-8">
 
   <meta
@@ -9,7 +10,7 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
   >
 
-  <title>AR Portfolio Video</title>
+  <title>AR Portfolio YouTube</title>
 
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
@@ -17,54 +18,155 @@
   <!-- AR.js -->
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
 
+
   <style>
 
     html,
     body {
+
       margin: 0;
       padding: 0;
+
       width: 100%;
       height: 100%;
+
       overflow: hidden;
+
       background: transparent;
+
     }
 
-    #status {
+
+    /*
+      ========================================
+      YOUTUBE AR SURFACE
+      ========================================
+    */
+
+    #youtubeCard {
+
       position: fixed;
+
+      width: 360px;
+      height: 202px;
+
+      left: 0;
+      top: 0;
+
+      display: none;
+
+      z-index: 9999;
+
+      border-radius: 12px;
+
+      overflow: hidden;
+
+      background: #000;
+
+      border: 2px solid rgba(255,255,255,0.85);
+
+      box-shadow:
+        0 15px 40px rgba(0,0,0,0.45);
+
+      /*
+        Important:
+        don't let the iframe affect
+        AR positioning.
+      */
+
+      transform-origin: center center;
+
+    }
+
+
+    #youtube {
+
+      width: 100%;
+      height: 100%;
+
+      border: 0;
+
+      display: block;
+
+    }
+
+
+    /*
+      DEBUG
+    */
+
+    #status {
+
+      position: fixed;
+
       top: 15px;
       left: 15px;
 
       z-index: 10000;
 
-      padding: 10px 14px;
-
-      border-radius: 8px;
+      padding: 9px 13px;
 
       background: rgba(0,0,0,.75);
 
       color: white;
 
+      border-radius: 8px;
+
       font-family: Arial, sans-serif;
-      font-size: 14px;
+
+      font-size: 13px;
+
     }
 
   </style>
+
 </head>
 
 
 <body>
 
 
-  <!-- DEBUG -->
+  <!-- =====================================
+       STATUS
+       ===================================== -->
 
   <div id="status">
     Looking for marker...
   </div>
 
 
-  <!-- ===================================
+  <!-- =====================================
+       YOUTUBE PLAYER
+       ===================================== -->
+
+  <div id="youtubeCard">
+
+    <iframe
+
+      id="youtube"
+
+      title="Portfolio Video"
+
+      src=""
+
+      allow="
+        autoplay;
+        encrypted-media;
+        picture-in-picture;
+        fullscreen
+      "
+
+      allowfullscreen>
+
+    </iframe>
+
+  </div>
+
+
+
+  <!-- =====================================
        AR SCENE
-       =================================== -->
+       ===================================== -->
 
   <a-scene
 
@@ -80,42 +182,15 @@
     arjs="
       sourceType: webcam;
       trackingMethod: best;
-      debugUIEnabled: true;
+      debugUIEnabled: false;
     "
 
   >
 
 
-    <!-- =================================
-         VIDEO ASSET
-         ================================= -->
-
-    <a-assets>
-
-      <video
-
-        id="portfolioVideo"
-
-        src="portfolio.mp4"
-
-        loop
-
-        muted
-
-        playsinline
-
-        webkit-playsinline
-
-        crossorigin="anonymous"
-
-      ></video>
-
-    </a-assets>
-
-
-    <!-- =================================
+    <!-- ===================================
          MARKER
-         ================================= -->
+         =================================== -->
 
     <a-marker
 
@@ -127,16 +202,19 @@
 
     >
 
+      <!--
 
-      <!-- =================================
-           VIDEO REPLACES THE OLD PLANE
-           ================================= -->
+        THIS INVISIBLE AR OBJECT DEFINES
+        WHERE THE YOUTUBE VIDEO LIVES.
 
-      <a-video
+        This occupies the same conceptual
+        position as your old PORTFOLIO plane.
 
-        id="videoPlane"
+      -->
 
-        src="#portfolioVideo"
+      <a-plane
+
+        id="videoAnchor"
 
         position="0 0.5 0"
 
@@ -146,7 +224,9 @@
 
         height="1.0125"
 
-      ></a-video>
+        visible="false"
+
+      ></a-plane>
 
 
     </a-marker>
@@ -160,23 +240,73 @@
   </a-scene>
 
 
+
   <script>
 
+
+    /*
+      ========================================
+      CONFIG
+      ========================================
+    */
+
+    const VIDEO_ID =
+      "YOUR_VIDEO_ID";
+
+
+    /*
+      ========================================
+      ELEMENTS
+      ========================================
+    */
 
     const marker =
       document.querySelector("#marker");
 
-    const video =
-      document.querySelector("#portfolioVideo");
+    const anchor =
+      document.querySelector("#videoAnchor");
+
+    const camera =
+      document.querySelector("[camera]");
+
+    const youtubeCard =
+      document.querySelector("#youtubeCard");
+
+    const youtube =
+      document.querySelector("#youtube");
 
     const status =
       document.querySelector("#status");
 
 
     /*
-      ======================================
+      ========================================
+      THREE.JS OBJECTS
+      ========================================
+    */
+
+    const THREE =
+      AFRAME.THREE;
+
+
+    /*
+      ========================================
+      TEMPORARY VECTORS
+      ========================================
+    */
+
+    const worldPosition =
+      new THREE.Vector3();
+
+
+    const screenPosition =
+      new THREE.Vector3();
+
+
+    /*
+      ========================================
       MARKER FOUND
-      ======================================
+      ========================================
     */
 
     marker.addEventListener(
@@ -190,28 +320,33 @@
 
 
         /*
-          Start the video.
+          Load YouTube.
+
+          Muted autoplay is used because
+          mobile browsers normally block
+          autoplay with sound.
         */
 
-        video.play().catch(
-          function(error) {
+        youtube.src =
+          "https://www.youtube.com/embed/" +
+          VIDEO_ID +
+          "?autoplay=1" +
+          "&mute=1" +
+          "&playsinline=1" +
+          "&rel=0";
 
-            console.log(
-              "Video autoplay blocked:",
-              error
-            );
 
-          }
-        );
+        youtubeCard.style.display =
+          "block";
 
       }
     );
 
 
     /*
-      ======================================
+      ========================================
       MARKER LOST
-      ======================================
+      ========================================
     */
 
     marker.addEventListener(
@@ -221,16 +356,171 @@
         console.log("MARKER LOST");
 
         status.innerText =
-          "Marker lost — point camera at marker";
+          "Marker lost";
+
+
+        youtubeCard.style.display =
+          "none";
+
+
+        youtube.src = "";
 
       }
     );
 
 
     /*
-      ======================================
+      ========================================
+      POSITION YOUTUBE OVER AR OBJECT
+      ========================================
+    */
+
+    function updateVideoPosition() {
+
+
+      /*
+        Don't do anything until marker
+        has actually been detected.
+      */
+
+      if (
+        !marker.object3D.visible ||
+        youtubeCard.style.display === "none"
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+        Get the AR anchor's WORLD position.
+      */
+
+      anchor.object3D.getWorldPosition(
+        worldPosition
+      );
+
+
+      /*
+        Convert 3D AR coordinates into
+        normalized screen coordinates.
+      */
+
+      screenPosition.copy(
+        worldPosition
+      );
+
+      screenPosition.project(
+        camera.object3D
+      );
+
+
+      /*
+        Convert WebGL coordinates:
+
+          X: -1 → +1
+
+          Y: -1 → +1
+
+        into browser pixels.
+      */
+
+      const x =
+        (screenPosition.x + 1) *
+        window.innerWidth / 2;
+
+
+      const y =
+        (1 - screenPosition.y) *
+        window.innerHeight / 2;
+
+
+      /*
+        Distance from camera.
+
+        This lets the video scale as the
+        marker moves closer/farther away.
+      */
+
+      const distance =
+        camera.object3D.position.distanceTo(
+          worldPosition
+        );
+
+
+      /*
+        Scale factor.
+
+        Closer marker = larger video.
+
+        Farther marker = smaller video.
+      */
+
+      const scale =
+        Math.max(
+          0.25,
+          Math.min(
+            2.0,
+            1.2 / distance
+          )
+        );
+
+
+      /*
+        Apply the AR position.
+      */
+
+      youtubeCard.style.left =
+        x + "px";
+
+
+      youtubeCard.style.top =
+        y + "px";
+
+
+      /*
+        Apply scale.
+
+        This creates the same basic
+        anchored-depth behaviour as the
+        transparent AR plane.
+      */
+
+      youtubeCard.style.transform =
+        "translate(-50%, -50%) scale(" +
+        scale +
+        ")";
+
+    }
+
+
+    /*
+      ========================================
+      RUN EVERY FRAME
+      ========================================
+    */
+
+    function tick() {
+
+      updateVideoPosition();
+
+      requestAnimationFrame(tick);
+
+    }
+
+
+    /*
+      START TRACKING
+      */
+
+    tick();
+
+
+    /*
+      ========================================
       AR READY
-      ======================================
+      ========================================
     */
 
     document
@@ -239,8 +529,6 @@
         "loaded",
         function () {
 
-          console.log("A-FRAME LOADED");
-
           status.innerText =
             "Camera ready — scan marker";
 
@@ -248,6 +536,7 @@
       );
 
   </script>
+
 
 </body>
 </html>
