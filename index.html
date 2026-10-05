@@ -1,90 +1,89 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
   >
 
-  <title>Portfolio AR</title>
+  <title>AR Portfolio Video</title>
 
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
 
   <!-- AR.js -->
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
 
   <style>
 
     html,
     body {
       margin: 0;
+      padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
       background: transparent;
-      font-family: Arial, sans-serif;
     }
 
     /*
-      Floating video above the AR marker
+      DEBUG STATUS
+    */
+
+    #status {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+
+      z-index: 10000;
+
+      padding: 10px 14px;
+
+      border-radius: 8px;
+
+      background: rgba(0,0,0,.75);
+
+      color: white;
+
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+
+
+    /*
+      FLOATING VIDEO CARD
     */
 
     #videoCard {
 
       position: fixed;
 
-      width: min(72vw, 420px);
+      width: 70vw;
+      max-width: 500px;
+
       aspect-ratio: 16 / 9;
 
       left: 50%;
-      top: 35%;
+      top: 32%;
 
-      transform:
-        translate(-50%, -50%)
-        scale(0.85);
+      transform: translate(-50%, -50%);
 
-      background: #000;
+      background: black;
 
-      border-radius: 14px;
+      border-radius: 16px;
 
       overflow: hidden;
 
-      box-shadow:
-        0 12px 40px rgba(0, 0, 0, 0.45);
+      border: 3px solid white;
 
-      border: 2px solid rgba(255,255,255,0.8);
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.6);
 
       z-index: 9999;
 
       display: none;
-
-      /*
-        Allows the iframe to receive
-        touch interaction.
-      */
-
-      pointer-events: auto;
-
-      transition:
-        opacity 0.25s ease,
-        transform 0.25s ease;
-
-      opacity: 0;
-
-    }
-
-
-    #videoCard.visible {
-
-      display: block;
-
-      opacity: 1;
-
-      transform:
-        translate(-50%, -50%)
-        scale(1);
 
     }
 
@@ -102,7 +101,7 @@
 
 
     /*
-      Small AR label
+      LABEL UNDER VIDEO
     */
 
     #label {
@@ -110,27 +109,25 @@
       position: fixed;
 
       left: 50%;
-      top: calc(35% + min(38vw, 225px));
+      top: calc(32% + 210px);
 
       transform: translateX(-50%);
 
       z-index: 9999;
 
-      display: none;
-
-      padding: 7px 14px;
+      padding: 8px 16px;
 
       border-radius: 20px;
 
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,.8);
 
       color: white;
 
+      font-family: Arial, sans-serif;
+
       font-size: 13px;
 
-      letter-spacing: 0.5px;
-
-      pointer-events: none;
+      display: none;
 
     }
 
@@ -141,18 +138,23 @@
 <body>
 
 
-  <!-- =========================================
-       FLOATING AR VIDEO
-       ========================================= -->
+  <!-- DEBUG -->
+
+  <div id="status">
+    Looking for marker...
+  </div>
+
+
+  <!-- FLOATING VIDEO -->
 
   <div id="videoCard">
 
     <iframe
       id="youtube"
 
-      src=""
+      title="Portfolio Video"
 
-      title="Portfolio Introduction"
+      src=""
 
       allow="
         autoplay;
@@ -168,37 +170,37 @@
 
 
   <div id="label">
-    PORTFOLIO
+    PORTFOLIO VIDEO
   </div>
 
 
-  <!-- =========================================
+  <!-- ===================================
        AR SCENE
-       ========================================= -->
+       =================================== -->
 
   <a-scene
 
     embedded
 
-    arjs="
-      trackingMethod: best;
-      sourceType: webcam;
-      debugUIEnabled: false;
-    "
-
-    renderer="
-      logarithmicDepthBuffer: true;
-      precision: medium;
-    "
-
     vr-mode-ui="enabled: false"
 
-    loading-screen="enabled: false">
+    renderer="
+      antialias: true;
+      alpha: true;
+    "
+
+    arjs="
+      sourceType: webcam;
+      trackingMethod: best;
+      debugUIEnabled: true;
+    "
+
+  >
 
 
-    <!-- =====================================
-         AR MARKER
-         ===================================== -->
+    <!-- =================================
+         MARKER
+         ================================= -->
 
     <a-marker
 
@@ -206,7 +208,56 @@
 
       type="pattern"
 
-      url="assets/marker.patt">
+      url="assets/marker.patt"
+
+    >
+
+      <!--
+        THIS IS A REAL AR OBJECT.
+
+        It should appear directly above
+        the physical marker.
+      -->
+
+      <a-plane
+
+        position="0 0.5 0"
+
+        rotation="-90 0 0"
+
+        width="1.8"
+
+        height="1"
+
+        color="#111"
+
+        opacity="0.9"
+
+      >
+
+      </a-plane>
+
+
+      <!-- AR TITLE -->
+
+      <a-text
+
+        value="PORTFOLIO"
+
+        position="0 0.55 0"
+
+        rotation="-90 0 0"
+
+        align="center"
+
+        width="3"
+
+        color="white"
+
+      >
+
+      </a-text>
+
 
     </a-marker>
 
@@ -221,18 +272,19 @@
 
   <script>
 
-
     /*
-      ========================================
-      CONFIGURATION
-      ========================================
+      ======================================
+      CONFIG
+      ======================================
     */
 
     const VIDEO_ID = "YOUR_VIDEO_ID";
 
 
     /*
-      DOM
+      ======================================
+      ELEMENTS
+      ======================================
     */
 
     const marker =
@@ -247,106 +299,94 @@
     const label =
       document.querySelector("#label");
 
-
-    /*
-      ========================================
-      SHOW VIDEO
-      ========================================
-    */
-
-    function showVideo() {
-
-      /*
-        Load YouTube only after marker
-        detection.
-
-        This prevents the video from
-        playing before AR starts.
-      */
-
-      youtube.src =
-        `https://www.youtube.com/embed/${VIDEO_ID}?autoplay=1&mute=0&playsinline=1`;
-
-      videoCard.style.display = "block";
-
-      label.style.display = "block";
-
-
-      /*
-        Allow CSS transition to run.
-      */
-
-      requestAnimationFrame(() => {
-
-        videoCard.classList.add("visible");
-
-      });
-
-    }
+    const status =
+      document.querySelector("#status");
 
 
     /*
-      ========================================
-      HIDE VIDEO
-      ========================================
-    */
-
-    function hideVideo() {
-
-      videoCard.classList.remove("visible");
-
-      label.style.display = "none";
-
-
-      /*
-        Stop playback.
-
-        Clearing the iframe also prevents
-        audio continuing after marker loss.
-      */
-
-      setTimeout(() => {
-
-        youtube.src = "";
-
-        videoCard.style.display = "none";
-
-      }, 250);
-
-    }
-
-
-    /*
-      ========================================
-      MARKER DETECTED
-      ========================================
+      ======================================
+      MARKER FOUND
+      ======================================
     */
 
     marker.addEventListener(
       "markerFound",
-      () => {
+      function () {
 
-        showVideo();
+        console.log("MARKER FOUND");
+
+        status.innerText =
+          "✓ MARKER DETECTED";
+
+        /*
+          Show floating HTML video
+        */
+
+        videoCard.style.display = "block";
+
+        label.style.display = "block";
+
+
+        /*
+          IMPORTANT:
+          muted autoplay is much more
+          likely to be permitted.
+        */
+
+        youtube.src =
+          "https://www.youtube.com/embed/" +
+          VIDEO_ID +
+          "?autoplay=1&mute=1&playsinline=1";
 
       }
     );
 
 
     /*
-      ========================================
+      ======================================
       MARKER LOST
-      ========================================
+      ======================================
     */
 
     marker.addEventListener(
       "markerLost",
-      () => {
+      function () {
 
-        hideVideo();
+        console.log("MARKER LOST");
+
+        status.innerText =
+          "Marker lost — point camera at marker";
+
+
+        videoCard.style.display = "none";
+
+        label.style.display = "none";
+
+        youtube.src = "";
 
       }
     );
 
+
+    /*
+      ======================================
+      AR READY
+      ======================================
+    */
+
+    document
+      .querySelector("a-scene")
+      .addEventListener(
+        "loaded",
+        function () {
+
+          console.log("A-FRAME LOADED");
+
+          status.innerText =
+            "Camera ready — scan marker";
+
+        }
+      );
 
   </script>
 
