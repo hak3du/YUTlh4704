@@ -48,6 +48,40 @@
       font-size: 14px;
     }
 
+    /*
+      YouTube player is positioned over
+      the AR video surface.
+    */
+
+    #youtubePlayer {
+
+      position: fixed;
+
+      width: 70vw;
+      max-width: 500px;
+
+      aspect-ratio: 16 / 9;
+
+      left: 50%;
+      top: 50%;
+
+      transform: translate(-50%, -50%);
+
+      z-index: 9999;
+
+      display: none;
+
+      border: 0;
+
+      border-radius: 12px;
+
+      overflow: hidden;
+
+      box-shadow:
+        0 15px 40px rgba(0,0,0,.5);
+
+    }
+
   </style>
 </head>
 
@@ -60,6 +94,28 @@
   <div id="status">
     Looking for marker...
   </div>
+
+
+  <!-- ===================================
+       YOUTUBE
+       =================================== -->
+
+  <iframe
+
+    id="youtubePlayer"
+
+    src=""
+
+    allow="
+      autoplay;
+      encrypted-media;
+      picture-in-picture;
+      fullscreen
+    "
+
+    allowfullscreen>
+
+  </iframe>
 
 
   <!-- ===================================
@@ -87,33 +143,6 @@
 
 
     <!-- =================================
-         VIDEO ASSET
-         ================================= -->
-
-    <a-assets>
-
-      <video
-
-        id="portfolioVideo"
-
-        src="portfolio.mp4"
-
-        loop
-
-        muted
-
-        playsinline
-
-        webkit-playsinline
-
-        crossorigin="anonymous"
-
-      ></video>
-
-    </a-assets>
-
-
-    <!-- =================================
          MARKER
          ================================= -->
 
@@ -127,16 +156,16 @@
 
     >
 
+      <!--
 
-      <!-- =================================
-           VIDEO REPLACES THE OLD PLANE
-           ================================= -->
+        THIS IS THE SAME ANCHOR POSITION
+        AS YOUR ORIGINAL VIDEO.
 
-      <a-video
+      -->
 
-        id="videoPlane"
+      <a-plane
 
-        src="#portfolioVideo"
+        id="videoAnchor"
 
         position="0 0.5 0"
 
@@ -146,7 +175,9 @@
 
         height="1.0125"
 
-      ></a-video>
+        visible="false"
+
+      ></a-plane>
 
 
     </a-marker>
@@ -163,11 +194,30 @@
   <script>
 
 
+    /*
+      ======================================
+      PUT YOUR YOUTUBE VIDEO ID HERE
+      ======================================
+    */
+
+    const VIDEO_ID =
+      "YOUR_VIDEO_ID";
+
+
+    /*
+      ======================================
+      ELEMENTS
+      ======================================
+    */
+
     const marker =
       document.querySelector("#marker");
 
-    const video =
-      document.querySelector("#portfolioVideo");
+    const anchor =
+      document.querySelector("#videoAnchor");
+
+    const youtube =
+      document.querySelector("#youtubePlayer");
 
     const status =
       document.querySelector("#status");
@@ -190,19 +240,21 @@
 
 
         /*
-          Start the video.
+          Start YouTube.
+
+          muted=1 is important because
+          mobile browsers normally block
+          autoplay with sound.
         */
 
-        video.play().catch(
-          function(error) {
+        youtube.src =
+          "https://www.youtube.com/embed/" +
+          VIDEO_ID +
+          "?autoplay=1&mute=1&playsinline=1";
 
-            console.log(
-              "Video autoplay blocked:",
-              error
-            );
 
-          }
-        );
+        youtube.style.display =
+          "block";
 
       }
     );
@@ -222,6 +274,12 @@
 
         status.innerText =
           "Marker lost — point camera at marker";
+
+
+        youtube.style.display =
+          "none";
+
+        youtube.src = "";
 
       }
     );
@@ -246,6 +304,7 @@
 
         }
       );
+
 
   </script>
 
