@@ -9,13 +9,26 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
   >
 
-  <title>AR Portfolio Layers</title>
+  <title>AR Portfolio — 3D Stack</title>
 
-  <!-- A-Frame -->
+
+  <!-- =========================================
+       A-FRAME
+       ========================================= -->
+
   <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
 
-  <!-- AR.js -->
+
+  <!-- =========================================
+       AR.JS
+       ========================================= -->
+
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
+
+
+  <!-- =========================================
+       STYLE
+       ========================================= -->
 
   <style>
 
@@ -34,6 +47,11 @@
 
     }
 
+
+    /* =========================================
+       DEBUG STATUS
+       ========================================= */
+
     #status {
 
       position: fixed;
@@ -47,7 +65,7 @@
 
       border-radius: 8px;
 
-      background: rgba(0,0,0,.75);
+      background: rgba(0, 0, 0, 0.75);
 
       color: white;
 
@@ -61,17 +79,22 @@
 
 </head>
 
+
 <body>
 
 
-  <!-- DEBUG -->
+  <!-- =========================================
+       DEBUG
+       ========================================= -->
 
   <div id="status">
     Looking for marker...
   </div>
 
 
-  <!-- AR SCENE -->
+  <!-- =========================================
+       AR SCENE
+       ========================================= -->
 
   <a-scene
 
@@ -93,7 +116,9 @@
   >
 
 
-    <!-- MARKER -->
+    <!-- =========================================
+         MARKER
+         ========================================= -->
 
     <a-marker
 
@@ -106,139 +131,169 @@
     >
 
 
-      <!-- =========================================
-           PORTFOLIO LAYER 1
-           BACK
-           ========================================= -->
+      <!-- =======================================
+           TRUE 3D PORTFOLIO STACK
 
-      <a-plane
+           The rotation happens ONCE here.
 
-        position="0 0.50 -0.20"
+           Every panel below has:
+             - identical width
+             - identical height
+             - identical rotation
 
-        rotation="-90 0 0"
+           Only Z changes.
 
-        width="1.8"
+           This creates physical depth.
+           ======================================= -->
 
-        height="1"
+      <a-entity
 
-        color="#111"
+        id="portfolio-stack"
 
-        opacity="0.95"
-
-      ></a-plane>
-
-
-      <!-- =========================================
-           PORTFOLIO LAYER 2
-           ========================================= -->
-
-      <a-plane
-
-        position="0 0.50 -0.10"
+        position="0 0.5 0"
 
         rotation="-90 0 0"
 
-        width="1.75"
-
-        height="0.95"
-
-        color="#222"
-
-        opacity="0.95"
-
-      ></a-plane>
+      >
 
 
-      <!-- =========================================
-           PORTFOLIO LAYER 3
-           MAIN
-           ========================================= -->
+        <!-- =====================================
+             PANEL 1 — BACK
+             ===================================== -->
 
-      <a-plane
+        <a-plane
 
-        position="0 0.50 0"
+          id="panel-1"
 
-        rotation="-90 0 0"
+          position="0 0 -0.60"
 
-        width="1.70"
+          width="1.8"
 
-        height="0.90"
+          height="1"
 
-        color="#333"
+          color="#111111"
 
-        opacity="0.95"
+          opacity="0.95"
 
-      ></a-plane>
-
-
-      <!-- =========================================
-           PORTFOLIO LAYER 4
-           ========================================= -->
-
-      <a-plane
-
-        position="0 0.50 0.10"
-
-        rotation="-90 0 0"
-
-        width="1.65"
-
-        height="0.85"
-
-        color="#444"
-
-        opacity="0.95"
-
-      ></a-plane>
+        ></a-plane>
 
 
-      <!-- =========================================
-           PORTFOLIO LAYER 5
-           FRONT
-           ========================================= -->
+        <!-- =====================================
+             PANEL 2
+             ===================================== -->
 
-      <a-plane
+        <a-plane
 
-        position="0 0.50 0.20"
+          id="panel-2"
 
-        rotation="-90 0 0"
+          position="0 0 -0.45"
 
-        width="1.60"
+          width="1.8"
 
-        height="0.80"
+          height="1"
 
-        color="#555"
+          color="#222222"
 
-        opacity="0.95"
+          opacity="0.95"
 
-      ></a-plane>
+        ></a-plane>
 
 
-      <!-- =========================================
-           TITLE
-           ========================================= -->
+        <!-- =====================================
+             PANEL 3
+             ===================================== -->
 
-      <a-text
+        <a-plane
 
-        value="PORTFOLIO"
+          id="panel-3"
 
-        position="0 0.56 0.21"
+          position="0 0 -0.30"
 
-        rotation="-90 0 0"
+          width="1.8"
 
-        align="center"
+          height="1"
 
-        width="3"
+          color="#333333"
 
-        color="white"
+          opacity="0.95"
 
-      ></a-text>
+        ></a-plane>
+
+
+        <!-- =====================================
+             PANEL 4
+             ===================================== -->
+
+        <a-plane
+
+          id="panel-4"
+
+          position="0 0 -0.15"
+
+          width="1.8"
+
+          height="1"
+
+          color="#444444"
+
+          opacity="0.95"
+
+        ></a-plane>
+
+
+        <!-- =====================================
+             PANEL 5 — FRONT
+             ===================================== -->
+
+        <a-plane
+
+          id="panel-5"
+
+          position="0 0 0"
+
+          width="1.8"
+
+          height="1"
+
+          color="#555555"
+
+          opacity="0.95"
+
+        ></a-plane>
+
+
+        <!-- =====================================
+             FRONT TITLE
+             ===================================== -->
+
+        <a-text
+
+          id="portfolio-title"
+
+          value="PORTFOLIO"
+
+          position="0 0.01 0.01"
+
+          rotation="0 0 0"
+
+          align="center"
+
+          width="3"
+
+          color="#FFFFFF"
+
+        ></a-text>
+
+
+      </a-entity>
 
 
     </a-marker>
 
 
-    <!-- CAMERA -->
+    <!-- =========================================
+         CAMERA
+         ========================================= -->
 
     <a-entity camera></a-entity>
 
@@ -246,14 +301,32 @@
   </a-scene>
 
 
+  <!-- =========================================
+       JAVASCRIPT
+       ========================================= -->
+
   <script>
+
+
+    /*
+      ==========================================
+      ELEMENTS
+      ==========================================
+    */
 
     const marker =
       document.querySelector("#marker");
 
+
     const status =
       document.querySelector("#status");
 
+
+    /*
+      ==========================================
+      MARKER FOUND
+      ==========================================
+    */
 
     marker.addEventListener(
 
@@ -271,6 +344,12 @@
     );
 
 
+    /*
+      ==========================================
+      MARKER LOST
+      ==========================================
+    */
+
     marker.addEventListener(
 
       "markerLost",
@@ -286,6 +365,12 @@
 
     );
 
+
+    /*
+      ==========================================
+      A-FRAME READY
+      ==========================================
+    */
 
     document
       .querySelector("a-scene")
@@ -303,6 +388,7 @@
         }
 
       );
+
 
   </script>
 
