@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
 
   <meta charset="UTF-8">
@@ -9,7 +10,7 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
   >
 
-  <title>AR Portfolio — 3D Stack</title>
+  <title>AR Portfolio — Evidence Stack</title>
 
 
   <!-- =========================================
@@ -47,11 +48,6 @@
 
     }
 
-
-    /* =========================================
-       DEBUG STATUS
-       ========================================= */
-
     #status {
 
       position: fixed;
@@ -84,11 +80,11 @@
 
 
   <!-- =========================================
-       DEBUG
+       DEBUG STATUS
        ========================================= -->
 
   <div id="status">
-    Looking for marker...
+    Starting AR...
   </div>
 
 
@@ -117,6 +113,40 @@
 
 
     <!-- =========================================
+         IMAGE ASSETS
+         ========================================= -->
+
+    <a-assets>
+
+      <img
+        id="pic1"
+        src="portfolio1.jpg"
+      >
+
+      <img
+        id="pic2"
+        src="portfolio2.jpg"
+      >
+
+      <img
+        id="pic3"
+        src="portfolio3.jpg"
+      >
+
+      <img
+        id="pic4"
+        src="portfolio4.jpg"
+      >
+
+      <img
+        id="pic5"
+        src="portfolio5.jpg"
+      >
+
+    </a-assets>
+
+
+    <!-- =========================================
          MARKER
          ========================================= -->
 
@@ -132,18 +162,25 @@
 
 
       <!-- =======================================
-           TRUE 3D PORTFOLIO STACK
+           PORTFOLIO 3D STACK
 
-           The rotation happens ONCE here.
+           Everything inside this entity is
+           physically attached to the marker.
 
-           Every panel below has:
-             - identical width
-             - identical height
-             - identical rotation
+           Move marker:
+             → stack moves
 
-           Only Z changes.
+           Rotate marker:
+             → stack rotates
 
-           This creates physical depth.
+           Tilt marker:
+             → stack tilts
+
+           Move marker closer:
+             → stack appears larger
+
+           Move marker away:
+             → stack appears smaller
            ======================================= -->
 
       <a-entity
@@ -158,7 +195,7 @@
 
 
         <!-- =====================================
-             PANEL 1 — BACK
+             PORTFOLIO 1 — BACK
              ===================================== -->
 
         <a-plane
@@ -171,15 +208,17 @@
 
           height="1"
 
-          color="#111111"
-
-          opacity="0.95"
+          material="
+            src: #pic1;
+            shader: flat;
+            transparent: true;
+          "
 
         ></a-plane>
 
 
         <!-- =====================================
-             PANEL 2
+             PORTFOLIO 2
              ===================================== -->
 
         <a-plane
@@ -192,15 +231,17 @@
 
           height="1"
 
-          color="#222222"
-
-          opacity="0.95"
+          material="
+            src: #pic2;
+            shader: flat;
+            transparent: true;
+          "
 
         ></a-plane>
 
 
         <!-- =====================================
-             PANEL 3
+             PORTFOLIO 3
              ===================================== -->
 
         <a-plane
@@ -213,15 +254,17 @@
 
           height="1"
 
-          color="#333333"
-
-          opacity="0.95"
+          material="
+            src: #pic3;
+            shader: flat;
+            transparent: true;
+          "
 
         ></a-plane>
 
 
         <!-- =====================================
-             PANEL 4
+             PORTFOLIO 4
              ===================================== -->
 
         <a-plane
@@ -234,15 +277,17 @@
 
           height="1"
 
-          color="#444444"
-
-          opacity="0.95"
+          material="
+            src: #pic4;
+            shader: flat;
+            transparent: true;
+          "
 
         ></a-plane>
 
 
         <!-- =====================================
-             PANEL 5 — FRONT
+             PORTFOLIO 5 — FRONT
              ===================================== -->
 
         <a-plane
@@ -255,34 +300,13 @@
 
           height="1"
 
-          color="#555555"
-
-          opacity="0.95"
+          material="
+            src: #pic5;
+            shader: flat;
+            transparent: true;
+          "
 
         ></a-plane>
-
-
-        <!-- =====================================
-             FRONT TITLE
-             ===================================== -->
-
-        <a-text
-
-          id="portfolio-title"
-
-          value="PORTFOLIO"
-
-          position="0 0.01 0.01"
-
-          rotation="0 0 0"
-
-          align="center"
-
-          width="3"
-
-          color="#FFFFFF"
-
-        ></a-text>
 
 
       </a-entity>
@@ -307,31 +331,39 @@
 
   <script>
 
-
-    /*
-      ==========================================
-      ELEMENTS
-      ==========================================
-    */
-
     const marker =
       document.querySelector("#marker");
-
 
     const status =
       document.querySelector("#status");
 
+    const scene =
+      document.querySelector("a-scene");
+
 
     /*
-      ==========================================
-      MARKER FOUND
-      ==========================================
-    */
+     * A-FRAME LOADED
+     */
+
+    scene.addEventListener(
+      "loaded",
+      function () {
+
+        console.log("A-FRAME LOADED");
+
+        status.innerText =
+          "Camera ready — scan marker";
+
+      }
+    );
+
+
+    /*
+     * MARKER FOUND
+     */
 
     marker.addEventListener(
-
       "markerFound",
-
       function () {
 
         console.log("MARKER FOUND");
@@ -340,20 +372,15 @@
           "✓ MARKER DETECTED";
 
       }
-
     );
 
 
     /*
-      ==========================================
-      MARKER LOST
-      ==========================================
-    */
+     * MARKER LOST
+     */
 
     marker.addEventListener(
-
       "markerLost",
-
       function () {
 
         console.log("MARKER LOST");
@@ -362,33 +389,7 @@
           "Marker lost — point camera at marker";
 
       }
-
     );
-
-
-    /*
-      ==========================================
-      A-FRAME READY
-      ==========================================
-    */
-
-    document
-      .querySelector("a-scene")
-      .addEventListener(
-
-        "loaded",
-
-        function () {
-
-          console.log("A-FRAME LOADED");
-
-          status.innerText =
-            "Camera ready — scan marker";
-
-        }
-
-      );
-
 
   </script>
 
