@@ -1,22 +1,22 @@
-```html
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="UTF-8">
-
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
   >
 
-  <title>AR Video</title>
+  <title>AR Portfolio Video</title>
 
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
 
+  <!-- AR.js -->
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
 
   <style>
+
     html,
     body {
       margin: 0;
@@ -24,7 +24,112 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
+      background: transparent;
     }
+
+    /*
+      DEBUG STATUS
+    */
+
+    #status {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+
+      z-index: 10000;
+
+      padding: 10px 14px;
+
+      border-radius: 8px;
+
+      background: rgba(0,0,0,.75);
+
+      color: white;
+
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+
+
+    /*
+      FLOATING VIDEO CARD
+    */
+
+    #videoCard {
+
+      position: fixed;
+
+      width: 70vw;
+      max-width: 500px;
+
+      aspect-ratio: 16 / 9;
+
+      left: 50%;
+      top: 32%;
+
+      transform: translate(-50%, -50%);
+
+      background: black;
+
+      border-radius: 16px;
+
+      overflow: hidden;
+
+      border: 3px solid white;
+
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.6);
+
+      z-index: 9999;
+
+      display: none;
+
+    }
+
+
+    #youtube {
+
+      width: 100%;
+      height: 100%;
+
+      border: 0;
+
+      display: block;
+
+    }
+
+
+    /*
+      LABEL UNDER VIDEO
+    */
+
+    #label {
+
+      position: fixed;
+
+      left: 50%;
+      top: calc(32% + 210px);
+
+      transform: translateX(-50%);
+
+      z-index: 9999;
+
+      padding: 8px 16px;
+
+      border-radius: 20px;
+
+      background: rgba(0,0,0,.8);
+
+      color: white;
+
+      font-family: Arial, sans-serif;
+
+      font-size: 13px;
+
+      display: none;
+
+    }
+
   </style>
 </head>
 
@@ -32,167 +137,257 @@
 <body>
 
 
-<a-scene
+  <!-- DEBUG -->
 
-  embedded
-
-  vr-mode-ui="enabled: false"
-
-  renderer="
-    alpha: true;
-    antialias: true;
-  "
-
-  arjs="
-    sourceType: webcam;
-    trackingMethod: best;
-    debugUIEnabled: false;
-  "
->
+  <div id="status">
+    Looking for marker...
+  </div>
 
 
-  <!-- ==============================
-       VIDEO
-       ============================== -->
+  <!-- FLOATING VIDEO -->
 
-  <a-assets>
+  <div id="videoCard">
 
-    <video
+    <iframe
+      id="youtube"
 
-      id="portfolioVideo"
+      title="Portfolio Video"
 
-      src="portfolio.mp4"
+      src=""
 
-      loop
+      allow="
+        autoplay;
+        encrypted-media;
+        picture-in-picture;
+        fullscreen
+      "
 
-      muted
+      allowfullscreen>
+    </iframe>
 
-      playsinline
-
-      webkit-playsinline
-
-      crossorigin="anonymous"
-
-    ></video>
-
-  </a-assets>
+  </div>
 
 
-  <!-- ==============================
-       MARKER
-       ============================== -->
+  <div id="label">
+    PORTFOLIO VIDEO
+  </div>
 
-  <a-marker
 
-    id="marker"
+  <!-- ===================================
+       AR SCENE
+       =================================== -->
 
-    type="pattern"
+  <a-scene
 
-    url="marker.patt"
+    embedded
+
+    vr-mode-ui="enabled: false"
+
+    renderer="
+      antialias: true;
+      alpha: true;
+    "
+
+    arjs="
+      sourceType: webcam;
+      trackingMethod: best;
+      debugUIEnabled: true;
+    "
+
   >
 
 
-    <!--
-      THIS IS THE VIDEO.
+    <!-- =================================
+         MARKER
+         ================================= -->
 
-      It is INSIDE the marker.
+    <a-marker
 
-      Therefore it inherits the marker's
-      position, rotation and scale.
-    -->
+      id="marker"
 
-    <a-video
+      type="pattern"
 
-      id="video"
+      url="marker.patt"
 
-      src="#portfolioVideo"
+    >
 
-      width="2"
+      <!--
+        THIS IS A REAL AR OBJECT.
 
-      height="1.125"
+        It should appear directly above
+        the physical marker.
+      -->
 
-      position="0 0.5 0"
+      <a-plane
 
-      rotation="-90 0 0"
+        position="0 0.5 0"
 
-    ></a-video>
+        rotation="-90 0 0"
 
+        width="1.8"
 
-  </a-marker>
+        height="1"
 
+        color="#111"
 
-  <!-- CAMERA -->
+        opacity="0.9"
 
-  <a-entity camera></a-entity>
+      >
 
-
-</a-scene>
-
-
-
-<script>
-
-
-const marker =
-  document.querySelector("#marker");
+      </a-plane>
 
 
-const video =
-  document.querySelector("#portfolioVideo");
+      <!-- AR TITLE -->
+
+      <a-text
+
+        value="PORTFOLIO"
+
+        position="0 0.55 0"
+
+        rotation="-90 0 0"
+
+        align="center"
+
+        width="3"
+
+        color="white"
+
+      >
+
+      </a-text>
 
 
-/*
-========================================
-MARKER FOUND
-========================================
-*/
+    </a-marker>
 
-marker.addEventListener(
-  "markerFound",
-  async function () {
 
-    console.log("MARKER FOUND");
+    <!-- CAMERA -->
 
-    try {
+    <a-entity camera></a-entity>
 
-      await video.play();
 
-      console.log("VIDEO PLAYING");
+  </a-scene>
 
-    }
 
-    catch (error) {
+  <script>
 
-      console.error(
-        "VIDEO PLAY ERROR:",
-        error
+    /*
+      ======================================
+      CONFIG
+      ======================================
+    */
+
+    const VIDEO_ID = "YOUR_VIDEO_ID";
+
+
+    /*
+      ======================================
+      ELEMENTS
+      ======================================
+    */
+
+    const marker =
+      document.querySelector("#marker");
+
+    const videoCard =
+      document.querySelector("#videoCard");
+
+    const youtube =
+      document.querySelector("#youtube");
+
+    const label =
+      document.querySelector("#label");
+
+    const status =
+      document.querySelector("#status");
+
+
+    /*
+      ======================================
+      MARKER FOUND
+      ======================================
+    */
+
+    marker.addEventListener(
+      "markerFound",
+      function () {
+
+        console.log("MARKER FOUND");
+
+        status.innerText =
+          "✓ MARKER DETECTED";
+
+        /*
+          Show floating HTML video
+        */
+
+        videoCard.style.display = "block";
+
+        label.style.display = "block";
+
+
+        /*
+          IMPORTANT:
+          muted autoplay is much more
+          likely to be permitted.
+        */
+
+        youtube.src =
+          "https://www.youtube.com/embed/" +
+          VIDEO_ID +
+          "?autoplay=1&mute=1&playsinline=1";
+
+      }
+    );
+
+
+    /*
+      ======================================
+      MARKER LOST
+      ======================================
+    */
+
+    marker.addEventListener(
+      "markerLost",
+      function () {
+
+        console.log("MARKER LOST");
+
+        status.innerText =
+          "Marker lost — point camera at marker";
+
+
+        videoCard.style.display = "none";
+
+        label.style.display = "none";
+
+        youtube.src = "";
+
+      }
+    );
+
+
+    /*
+      ======================================
+      AR READY
+      ======================================
+    */
+
+    document
+      .querySelector("a-scene")
+      .addEventListener(
+        "loaded",
+        function () {
+
+          console.log("A-FRAME LOADED");
+
+          status.innerText =
+            "Camera ready — scan marker";
+
+        }
       );
 
-    }
-
-  }
-);
-
-
-/*
-========================================
-MARKER LOST
-========================================
-*/
-
-marker.addEventListener(
-  "markerLost",
-  function () {
-
-    console.log("MARKER LOST");
-
-  }
-);
-
-
-</script>
-
+  </script>
 
 </body>
 </html>
-```
