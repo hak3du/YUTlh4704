@@ -9,18 +9,13 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
   >
 
-  <title>AR Portfolio Video</title>
-
+  <title>AR Portfolio Layers</title>
 
   <!-- A-Frame -->
-
   <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
 
-
   <!-- AR.js -->
-
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
-
 
   <style>
 
@@ -38,11 +33,6 @@
       background: transparent;
 
     }
-
-
-    /*
-      DEBUG STATUS
-    */
 
     #status {
 
@@ -71,24 +61,17 @@
 
 </head>
 
-
 <body>
 
 
-  <!-- ===================================
-       DEBUG
-       =================================== -->
+  <!-- DEBUG -->
 
   <div id="status">
-
     Looking for marker...
-
   </div>
 
 
-  <!-- ===================================
-       AR SCENE
-       =================================== -->
+  <!-- AR SCENE -->
 
   <a-scene
 
@@ -110,9 +93,7 @@
   >
 
 
-    <!-- =================================
-         MARKER
-         ================================= -->
+    <!-- MARKER -->
 
     <a-marker
 
@@ -125,15 +106,14 @@
     >
 
 
-      <!-- =================================
-           REAL AR PORTFOLIO SURFACE
-
-           THIS IS ANCHORED TO THE MARKER.
-           ================================= -->
+      <!-- =========================================
+           PORTFOLIO LAYER 1
+           BACK
+           ========================================= -->
 
       <a-plane
 
-        position="0 0.5 0"
+        position="0 0.50 -0.20"
 
         rotation="-90 0 0"
 
@@ -143,22 +123,106 @@
 
         color="#111"
 
-        opacity="0.9"
+        opacity="0.95"
 
-      >
-
-      </a-plane>
+      ></a-plane>
 
 
-      <!-- =================================
-           AR TITLE
-           ================================= -->
+      <!-- =========================================
+           PORTFOLIO LAYER 2
+           ========================================= -->
+
+      <a-plane
+
+        position="0 0.50 -0.10"
+
+        rotation="-90 0 0"
+
+        width="1.75"
+
+        height="0.95"
+
+        color="#222"
+
+        opacity="0.95"
+
+      ></a-plane>
+
+
+      <!-- =========================================
+           PORTFOLIO LAYER 3
+           MAIN
+           ========================================= -->
+
+      <a-plane
+
+        position="0 0.50 0"
+
+        rotation="-90 0 0"
+
+        width="1.70"
+
+        height="0.90"
+
+        color="#333"
+
+        opacity="0.95"
+
+      ></a-plane>
+
+
+      <!-- =========================================
+           PORTFOLIO LAYER 4
+           ========================================= -->
+
+      <a-plane
+
+        position="0 0.50 0.10"
+
+        rotation="-90 0 0"
+
+        width="1.65"
+
+        height="0.85"
+
+        color="#444"
+
+        opacity="0.95"
+
+      ></a-plane>
+
+
+      <!-- =========================================
+           PORTFOLIO LAYER 5
+           FRONT
+           ========================================= -->
+
+      <a-plane
+
+        position="0 0.50 0.20"
+
+        rotation="-90 0 0"
+
+        width="1.60"
+
+        height="0.80"
+
+        color="#555"
+
+        opacity="0.95"
+
+      ></a-plane>
+
+
+      <!-- =========================================
+           TITLE
+           ========================================= -->
 
       <a-text
 
         value="PORTFOLIO"
 
-        position="0 0.55 0"
+        position="0 0.56 0.21"
 
         rotation="-90 0 0"
 
@@ -168,17 +232,13 @@
 
         color="white"
 
-      >
-
-      </a-text>
+      ></a-text>
 
 
     </a-marker>
 
 
-    <!-- =================================
-         CAMERA
-         ================================= -->
+    <!-- CAMERA -->
 
     <a-entity camera></a-entity>
 
@@ -188,26 +248,12 @@
 
   <script>
 
-
-    /*
-      ======================================
-      ELEMENTS
-      ======================================
-    */
-
     const marker =
       document.querySelector("#marker");
-
 
     const status =
       document.querySelector("#status");
 
-
-    /*
-      ======================================
-      MARKER FOUND
-      ======================================
-    */
 
     marker.addEventListener(
 
@@ -215,10 +261,7 @@
 
       function () {
 
-        console.log(
-          "MARKER FOUND"
-        );
-
+        console.log("MARKER FOUND");
 
         status.innerText =
           "✓ MARKER DETECTED";
@@ -228,22 +271,13 @@
     );
 
 
-    /*
-      ======================================
-      MARKER LOST
-      ======================================
-    */
-
     marker.addEventListener(
 
       "markerLost",
 
       function () {
 
-        console.log(
-          "MARKER LOST"
-        );
-
+        console.log("MARKER LOST");
 
         status.innerText =
           "Marker lost — point camera at marker";
@@ -253,12 +287,6 @@
     );
 
 
-    /*
-      ======================================
-      AR READY
-      ======================================
-    */
-
     document
       .querySelector("a-scene")
       .addEventListener(
@@ -267,10 +295,7 @@
 
         function () {
 
-          console.log(
-            "A-FRAME LOADED"
-          );
-
+          console.log("A-FRAME LOADED");
 
           status.innerText =
             "Camera ready — scan marker";
