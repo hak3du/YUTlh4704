@@ -8,15 +8,23 @@
   <style>
     html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #10131b; }
     #status { position: fixed; z-index: 10; top: 14px; left: 14px; padding: 9px 12px; border-radius: 8px; background: rgba(0,0,0,.72); color: #fff; font: 14px Arial, sans-serif; }
+    #controls { position: fixed; z-index: 10; left: 14px; bottom: 14px; max-width: calc(100vw - 28px); padding: 10px 12px; border-radius: 8px; background: rgba(0,0,0,.72); color: #fff; font: 13px/1.5 Arial, sans-serif; }
+    #reset-view { margin-top: 6px; padding: 6px 10px; border: 1px solid #aaa; border-radius: 5px; background: #222; color: white; cursor: pointer; }
     #youtube-player { display: none; position: fixed; inset: 0; z-index: 20; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; background: rgba(0,0,0,.9); }
     #youtube-player.open { display: flex; }
     .player-card { width: min(900px, 100%); position: relative; background: #000; border-radius: 12px; overflow: hidden; }
     .video-frame { width: 100%; aspect-ratio: 16 / 9; display: block; border: 0; }
     #close-youtube { position: absolute; top: 8px; right: 8px; z-index: 1; width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(0,0,0,.8); color: white; font-size: 25px; cursor: pointer; }
+    body.dragging { cursor: grabbing; }
   </style>
 </head>
 <body>
   <div id="status">Desktop preview — no camera</div>
+  <div id="controls">
+    <strong>Explore the stack</strong><br>
+    Drag to orbit around the images · Scroll to zoom · Double-click to reset
+    <br><button id="reset-view" type="button">Reset view</button>
+  </div>
   <a-scene embedded background="color: #10131b" vr-mode-ui="enabled: false" renderer="antialias: true; alpha: false;">
     <a-assets>
       <img id="pic1" crossorigin="anonymous" src="https://images.pexels.com/photos/4439901/pexels-photo-4439901.jpeg?auto=compress&cs=tinysrgb&w=1600">
@@ -34,7 +42,7 @@
       <a-plane id="panel-5" position="0 0 0" width="1.8" height="1" material="src: #pic5; shader: flat; transparent: true; opacity: 0.2; depthWrite: false;"></a-plane>
     </a-entity>
 
-    <a-entity camera look-controls="enabled: true" position="0 0 0">
+    <a-entity id="preview-camera" camera position="0 0 0">
       <a-entity cursor="rayOrigin: mouse; fuse: false" raycaster="objects: #panel-3; far: 10"></a-entity>
     </a-entity>
   </a-scene>
@@ -49,7 +57,62 @@
     const player = document.querySelector("#youtube-player");
     const iframe = document.querySelector("#youtube-iframe");
     const closeButton = document.querySelector("#close-youtube");
+    const camera = document.querySelector("#preview-camera");
+    const sceneCanvasReady = () => camera.object3D;
+    const target = new THREE.Vector3(0, 0, -3.5);
+    let yaw = 0;
+    let pitch = 0;
+    let distance = 3.5;
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    function updateView() {
+      const horizontal = distance * Math.cos(pitch);
+      camera.object3D.position.set(
+        target.x + horizontal * Math.sin(yaw),
+        target.y + distance * Math.sin(pitch),
+        target.z + horizontal * Math.cos(yaw)
+      );
+      camera.object3D.lookAt(target);
+    }
+    function resetView() {
+      yaw = 0;
+      pitch = 0;
+      distance = 3.5;
+      updateView();
+    }
+    document.addEventListener("pointerdown", event => {
+      if (event.target.closest("#controls, #youtube-player")) return;
+      dragging = true;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      document.body.classList.add("dragging");
+    });
+    document.addEventListener("pointermove", event => {
+      if (!dragging) return;
+      yaw -= (event.clientX - lastX) * 0.008;
+      pitch += (event.clientY - lastY) * 0.008;
+      pitch = Math.max(-1.25, Math.min(1.25, pitch));
+      lastX = event.clientX;
+      lastY = event.clientY;
+      updateView();
+    });
+    function stopDragging() {
+      dragging = false;
+      document.body.classList.remove("dragging");
+    }
+    document.addEventListener("pointerup", stopDragging);
+    document.addEventListener("pointercancel", stopDragging);
+    document.addEventListener("wheel", event => {
+      if (player.classList.contains("open")) return;
+      distance = Math.max(2.0, Math.min(8.0, distance + event.deltaY * 0.004));
+      updateView();
+    }, { passive: true });
+    document.addEventListener("dblclick", resetView);
+    document.querySelector("#reset-view").addEventListener("click", resetView);
     document.querySelector("#panel-3").addEventListener("click", () => {
+      if (dragging) return;
       iframe.src = iframe.dataset.src;
       player.classList.add("open");
     });
@@ -64,6 +127,8 @@
     document.addEventListener("keydown", event => {
       if (event.key === "Escape") closePlayer();
     });
+    camera.addEventListener("loaded", resetView);
+    document.querySelector("a-scene").addEventListener("loaded", resetView);
   </script>
 </body>
 </html>
