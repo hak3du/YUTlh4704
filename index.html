@@ -49,26 +49,64 @@
     }
 
     #status {
-
       position: fixed;
-
       top: 15px;
       left: 15px;
-
       z-index: 10000;
-
       padding: 10px 14px;
-
       border-radius: 8px;
-
       background: rgba(0, 0, 0, 0.75);
-
       color: white;
-
       font-family: Arial, sans-serif;
-
       font-size: 14px;
+    }
 
+    #youtube-player {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 20000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.88);
+      box-sizing: border-box;
+    }
+
+    #youtube-player.open {
+      display: flex;
+    }
+
+    #youtube-player .player-card {
+      width: min(900px, 100%);
+      position: relative;
+      background: #000;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 70px rgba(0,0,0,.55);
+    }
+
+    #youtube-player .video-frame {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      display: block;
+      border: 0;
+    }
+
+    #close-youtube {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 1;
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(0,0,0,.8);
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
     }
 
   </style>
@@ -128,9 +166,12 @@
         src="portfolio2.png"
       >
 
+      <!-- YouTube thumbnail used as the AR panel texture.
+           Tap/click the panel to open the actual YouTube player. -->
       <img
         id="pic3"
-        src="portfolio3.png"
+        src="https://img.youtube.com/vi/Qj0Qx8HpNUo/hqdefault.jpg"
+        crossorigin="anonymous"
       >
 
       <img
@@ -319,11 +360,34 @@
          CAMERA
          ========================================= -->
 
-    <a-entity camera></a-entity>
+    <a-entity camera>
+      <a-entity
+        cursor="fuse: false; rayOrigin: entity"
+        raycaster="objects: #panel-3; far: 10"
+        position="0 0 -1">
+      </a-entity>
+    </a-entity>
 
 
   </a-scene>
 
+
+  <!-- YouTube player opened when the middle AR panel is tapped. -->
+  <div id="youtube-player" role="dialog" aria-modal="true" aria-label="Portfolio video">
+    <div class="player-card">
+      <button id="close-youtube" type="button" aria-label="Close video">×</button>
+      <iframe
+        id="youtube-iframe"
+        class="video-frame"
+        title="Portfolio introduction video"
+        src="about:blank"
+        data-src="https://www.youtube-nocookie.com/embed/Qj0Qx8HpNUo?autoplay=1&rel=0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen>
+      </iframe>
+    </div>
+  </div>
 
   <!-- =========================================
        JAVASCRIPT
@@ -339,6 +403,37 @@
 
     const scene =
       document.querySelector("a-scene");
+    const middlePanel =
+      document.querySelector("#panel-3");
+    const youtubePlayer =
+      document.querySelector("#youtube-player");
+    const youtubeIframe =
+      document.querySelector("#youtube-iframe");
+    const closeYoutube =
+      document.querySelector("#close-youtube");
+
+    function openYoutube() {
+      youtubeIframe.src = youtubeIframe.dataset.src;
+      youtubePlayer.classList.add("open");
+      status.innerText = "Playing portfolio video";
+    }
+
+    function closeYoutubePlayer() {
+      youtubePlayer.classList.remove("open");
+      youtubeIframe.src = "about:blank";
+      status.innerText = marker.object3D.visible
+        ? "✓ MARKER DETECTED"
+        : "Camera ready — scan marker";
+    }
+
+    middlePanel.addEventListener("click", openYoutube);
+    closeYoutube.addEventListener("click", closeYoutubePlayer);
+    youtubePlayer.addEventListener("click", function (event) {
+      if (event.target === youtubePlayer) closeYoutubePlayer();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeYoutubePlayer();
+    });
 
 
     /*
