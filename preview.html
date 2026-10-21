@@ -42,7 +42,7 @@
       <a-plane id="panel-5" position="0 0 0" width="1.8" height="1" material="src: #pic5; shader: flat; transparent: true; opacity: 0.2; depthWrite: false;"></a-plane>
     </a-entity>
 
-    <a-entity id="preview-camera" camera position="0 0 0">
+    <a-entity id="preview-camera" camera look-controls="enabled: false" wasd-controls="enabled: false" position="0 0 0">
       <a-entity cursor="rayOrigin: mouse; fuse: false" raycaster="objects: #panel-3; far: 10"></a-entity>
     </a-entity>
   </a-scene>
