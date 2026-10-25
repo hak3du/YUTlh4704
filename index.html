@@ -61,6 +61,29 @@
       font-size: 14px;
     }
 
+    #open-video-popup {
+      position: fixed;
+      right: 16px;
+      bottom: 18px;
+      z-index: 10001;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: rgba(8, 16, 28, .88);
+      color: #fff;
+      font: 600 14px/1 Arial, sans-serif;
+      letter-spacing: .02em;
+      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(0,0,0,.32);
+      backdrop-filter: blur(12px);
+    }
+
+    #open-video-popup:focus-visible,
+    #close-youtube:focus-visible {
+      outline: 2px solid #78e7ff;
+      outline-offset: 3px;
+    }
+
     #youtube-player {
       display: none;
       position: fixed;
@@ -168,13 +191,16 @@
         crossorigin="anonymous"
       >
 
-      <!-- YouTube thumbnail used as the AR panel texture.
-           Tap/click the panel to open the actual YouTube player. -->
-      <img
-        id="pic3"
-        src="https://img.youtube.com/vi/Qj0Qx8HpNUo/hqdefault.jpg"
+      <!-- Intro video used as a live video texture on AR panel 3. -->
+      <video
+        id="intro-video"
+        src="https://hak3du.github.io/portfolio/intro.mp4"
         crossorigin="anonymous"
-      >
+        playsinline
+        muted
+        loop
+        preload="auto"
+      ></video>
 
       <img
         id="pic4"
@@ -312,10 +338,10 @@
           height="1.25"
 
           material="
-            src: #pic3;
+            src: #intro-video;
             shader: flat;
             transparent: true;
-            opacity: 0.6;
+            opacity: 1.0;
             depthWrite: false;
           "
 
@@ -394,20 +420,20 @@
   </a-scene>
 
 
-  <!-- YouTube player opened when the middle AR panel is tapped. -->
-  <div id="youtube-player" role="dialog" aria-modal="true" aria-label="Portfolio video">
+  <!-- Separate expanded player; the AR panel keeps playing in place. -->
+  <button id="open-video-popup" type="button" aria-haspopup="dialog">⤢ Expand video</button>
+  <div id="youtube-player" role="dialog" aria-modal="true" aria-label="Expanded portfolio video">
     <div class="player-card">
       <button id="close-youtube" type="button" aria-label="Close video">×</button>
-      <iframe
-        id="youtube-iframe"
+      <video
+        id="popup-video"
         class="video-frame"
         title="Portfolio introduction video"
-        src="about:blank"
-        data-src="https://www.youtube-nocookie.com/embed/Qj0Qx8HpNUo?autoplay=1&rel=0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"
-        allowfullscreen>
-      </iframe>
+        src="https://hak3du.github.io/portfolio/intro.mp4"
+        playsinline
+        controls
+        preload="metadata">
+      </video>
     </div>
   </div>
 
@@ -427,34 +453,67 @@
       document.querySelector("a-scene");
     const middlePanel =
       document.querySelector("#panel-3");
+    const paneVideo =
+      document.querySelector("#intro-video");
     const youtubePlayer =
       document.querySelector("#youtube-player");
-    const youtubeIframe =
-      document.querySelector("#youtube-iframe");
+    const popupVideo =
+      document.querySelector("#popup-video");
+    const openVideoPopup =
+      document.querySelector("#open-video-popup");
     const closeYoutube =
       document.querySelector("#close-youtube");
 
-    function openYoutube() {
-      youtubeIframe.src = youtubeIframe.dataset.src;
+    async function togglePaneVideo() {
+      try {
+        if (paneVideo.paused) {
+          await paneVideo.play();
+          status.innerText = "▶ Intro playing on AR panel";
+        } else {
+          paneVideo.pause();
+          status.innerText = "Intro paused — tap the panel to resume";
+        }
+      } catch (error) {
+        status.innerText = "Video could not load — check the intro.mp4 URL";
+        console.error("AR pane video playback failed:", error);
+      }
+    }
+
+    async function openVideoPopup() {
       youtubePlayer.classList.add("open");
-      status.innerText = "Playing portfolio video";
+      try {
+        if (Number.isFinite(paneVideo.currentTime)) {
+          popupVideo.currentTime = paneVideo.currentTime;
+        }
+        await popupVideo.play();
+      } catch (error) {
+        status.innerText = "Tap Play in the expanded video window";
+        console.error("Expanded video playback failed:", error);
+      }
+      closeYoutube.focus();
     }
 
     function closeYoutubePlayer() {
       youtubePlayer.classList.remove("open");
-      youtubeIframe.src = "about:blank";
+      if (!popupVideo.paused) {
+        try { paneVideo.currentTime = popupVideo.currentTime; } catch (_) {}
+        popupVideo.pause();
+      }
       status.innerText = marker.object3D.visible
         ? "✓ MARKER DETECTED"
         : "Camera ready — scan marker";
     }
 
-    middlePanel.addEventListener("click", openYoutube);
+    middlePanel.addEventListener("click", togglePaneVideo);
+    openVideoPopup.addEventListener("click", openVideoPopup);
     closeYoutube.addEventListener("click", closeYoutubePlayer);
     youtubePlayer.addEventListener("click", function (event) {
       if (event.target === youtubePlayer) closeYoutubePlayer();
     });
     document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") closeYoutubePlayer();
+      if (event.key === "Escape" && youtubePlayer.classList.contains("open")) {
+        closeYoutubePlayer();
+      }
     });
 
 
