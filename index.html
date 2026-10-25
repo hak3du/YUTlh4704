@@ -31,9 +31,7 @@
        STYLE
        ========================================= -->
 
-  <style>
-
-    html,
+  <style>html,
     body {
 
       margin: 0;
@@ -61,7 +59,21 @@
       font-size: 14px;
     }
 
+    #youtube-panel {
+      position: fixed;
+      display: none;
+      z-index: 9000;
+      overflow: hidden;
+      pointer-events: auto;
+      background: #000;
+    }
 
+    #youtube-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
   </style>
 
 </head>
@@ -121,16 +133,7 @@
         crossorigin="anonymous"
       >
 
-      <!-- Intro video used as a live video texture on AR panel 3. -->
-      <video
-        id="intro-video"
-        src="https://hak3du.github.io/portfolio/intro.mp4"
-        crossorigin="anonymous"
-        playsinline
-        muted
-        loop
-        preload="auto"
-      ></video>
+      <!-- YouTube playback is rendered in a tracked DOM layer over panel-3. -->
 
       <img
         id="pic4"
@@ -268,10 +271,9 @@
           height="1.25"
 
           material="
-            src: #intro-video;
             shader: flat;
             transparent: true;
-            opacity: 1.0;
+            opacity: 0;
             depthWrite: false;
           "
 
@@ -351,97 +353,116 @@
 
 
 
+  <!-- YouTube video aligned to the existing middle AR panel, not a popup. -->
+  <div id="youtube-panel" aria-label="Intro video panel">
+    <iframe
+      id="youtube-frame"
+      title="Portfolio introduction video"
+      src="https://www.youtube-nocookie.com/embed/aGIFkEbYzFE?autoplay=0&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1&enablejsapi=1&origin=https%3A%2F%2Fhak3du.github.io"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen>
+    </iframe>
+  </div>
+
   <!-- =========================================
        JAVASCRIPT
        ========================================= -->
-
   <script>
+    const marker = document.querySelector("#marker");
+    const status = document.querySelector("#status");
+    const scene = document.querySelector("a-scene");
+    const panel = document.querySelector("#panel-3");
+    const overlay = document.querySelector("#youtube-panel");
+    const frame = document.querySelector("#youtube-frame");
+    let markerVisible = false;
 
-    const marker =
-      document.querySelector("#marker");
-
-    const status =
-      document.querySelector("#status");
-
-    const scene =
-      document.querySelector("a-scene");
-    const paneVideo =
-      document.querySelector("#intro-video");
-
-    // The MP4 is the texture on panel-3 itself: no overlay or separate player.
-    paneVideo.addEventListener("loadeddata", function () {
-      paneVideo.play().catch(function (error) {
-        console.info("Video will start when the marker is detected:", error);
-      });
-    });
-
-    async function startStackVideo() {
-      try {
-        paneVideo.muted = true;
-        await paneVideo.play();
-        status.innerText = "▶ Intro playing inside the AR stack";
-      } catch (error) {
-        status.innerText = "Tap the screen once to allow the AR video to play";
-        console.error("AR stack video playback failed:", error);
-      }
+    function postYouTubeCommand(func) {
+      frame.contentWindow?.postMessage(JSON.stringify({
+        event: "command",
+        func,
+        args: []
+      }), "https://www.youtube-nocookie.com");
     }
 
-    marker.addEventListener("markerFound", startStackVideo);
-    marker.addEventListener("markerLost", function () {
-      paneVideo.pause();
+    function projectPanel() {
+      if (!markerVisible || !panel || !scene.camera || !scene.renderer) {
+        overlay.style.display = "none";
+        requestAnimationFrame(projectPanel);
+        return;
+      }
+
+      const camera = scene.camera;
+      const renderer = scene.renderer;
+      const canvas = renderer.domElement;
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      const geometry = panel.getObject3D("mesh")?.geometry;
+      if (!geometry) {
+        requestAnimationFrame(projectPanel);
+        return;
+      }
+
+      const positions = [
+        [-1.125, -0.625, 0],
+        [1.125, -0.625, 0],
+        [1.125, 0.625, 0],
+        [-1.125, 0.625, 0]
+      ];
+
+      panel.object3D.updateWorldMatrix(true, false);
+      camera.updateMatrixWorld(true);
+      const points = positions.map(([x, y, z]) => {
+        const v = new THREE.Vector3(x, y, z);
+        panel.object3D.localToWorld(v);
+        v.project(camera);
+        return {
+          x: rect.left + (v.x + 1) * width / 2,
+          y: rect.top + (1 - v.y) * height / 2
+        };
+      });
+
+      const minX = Math.min(...points.map(p => p.x));
+      const maxX = Math.max(...points.map(p => p.x));
+      const minY = Math.min(...points.map(p => p.y));
+      const maxY = Math.max(...points.map(p => p.y));
+      const w = maxX - minX;
+      const h = maxY - minY;
+
+      if (![minX, maxX, minY, maxY, w, h].every(Number.isFinite) || w < 2 || h < 2) {
+        overlay.style.display = "none";
+        requestAnimationFrame(projectPanel);
+        return;
+      }
+
+      overlay.style.display = "block";
+      overlay.style.left = minX + "px";
+      overlay.style.top = minY + "px";
+      overlay.style.width = w + "px";
+      overlay.style.height = h + "px";
+      const clip = points.map(p => ((p.x - minX) / w * 100).toFixed(2) + "% " + ((p.y - minY) / h * 100).toFixed(2) + "%").join(", ");
+      overlay.style.clipPath = "polygon(" + clip + ")";
+      requestAnimationFrame(projectPanel);
+    }
+
+    marker.addEventListener("markerFound", function () {
+      markerVisible = true;
+      status.innerText = "✓ MARKER DETECTED — intro video panel active";
+      postYouTubeCommand("playVideo");
     });
 
+    marker.addEventListener("markerLost", function () {
+      markerVisible = false;
+      overlay.style.display = "none";
+      status.innerText = "Marker lost — point camera at marker";
+      postYouTubeCommand("pauseVideo");
+    });
 
-    /*
-     * A-FRAME LOADED
-     */
-
-    scene.addEventListener(
-      "loaded",
-      function () {
-
-        console.log("A-FRAME LOADED");
-
-        status.innerText =
-          "Camera ready — scan marker";
-
-      }
-    );
-
-
-    /*
-     * MARKER FOUND
-     */
-
-    marker.addEventListener(
-      "markerFound",
-      function () {
-
-        console.log("MARKER FOUND");
-
-        status.innerText =
-          "✓ MARKER DETECTED";
-
-      }
-    );
-
-
-    /*
-     * MARKER LOST
-     */
-
-    marker.addEventListener(
-      "markerLost",
-      function () {
-
-        console.log("MARKER LOST");
-
-        status.innerText =
-          "Marker lost — point camera at marker";
-
-      }
-    );
-
+    scene.addEventListener("loaded", function () {
+      status.innerText = "Camera ready — scan marker";
+      requestAnimationFrame(projectPanel);
+    });
   </script>
 
 
