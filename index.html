@@ -133,7 +133,7 @@
         crossorigin="anonymous"
       >
 
-      <!-- YouTube playback is rendered in a tracked DOM layer over panel-3. -->
+      <!-- YouTube is clipped to panel-3. As an iframe cannot be a WebGL texture, panel-3 is deliberately the frontmost card. -->
 
       <img
         id="pic4"
@@ -264,7 +264,7 @@
 
           id="panel-3"
 
-          position="0 0 -0.60"
+          position="0 0 0.18"
 
           width="2.25"
 
@@ -358,7 +358,7 @@
     <iframe
       id="youtube-frame"
       title="Portfolio introduction video"
-      src="https://www.youtube-nocookie.com/embed/aGIFkEbYzFE?autoplay=0&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1&enablejsapi=1&origin=https%3A%2F%2Fhak3du.github.io"
+      src="https://www.youtube-nocookie.com/embed/_kS7F4VpJa0?autoplay=0&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1&enablejsapi=1&origin=https%3A%2F%2Fhak3du.github.io"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
       referrerpolicy="strict-origin-when-cross-origin"
       allowfullscreen>
@@ -448,7 +448,7 @@
 
     marker.addEventListener("markerFound", function () {
       markerVisible = true;
-      status.innerText = "✓ MARKER DETECTED — intro video panel active";
+      status.innerText = "✓ MARKER DETECTED — intro video panel active (front card)";
       postYouTubeCommand("playVideo");
     });
 
