@@ -61,76 +61,6 @@
       font-size: 14px;
     }
 
-    #open-video-popup {
-      position: fixed;
-      right: 16px;
-      bottom: 18px;
-      z-index: 10001;
-      border: 1px solid rgba(255,255,255,.28);
-      border-radius: 999px;
-      padding: 12px 16px;
-      background: rgba(8, 16, 28, .88);
-      color: #fff;
-      font: 600 14px/1 Arial, sans-serif;
-      letter-spacing: .02em;
-      cursor: pointer;
-      box-shadow: 0 8px 28px rgba(0,0,0,.32);
-      backdrop-filter: blur(12px);
-    }
-
-    #open-video-popup:focus-visible,
-    #close-youtube:focus-visible {
-      outline: 2px solid #78e7ff;
-      outline-offset: 3px;
-    }
-
-    #youtube-player {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 20000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.88);
-      box-sizing: border-box;
-    }
-
-    #youtube-player.open {
-      display: flex;
-    }
-
-    #youtube-player .player-card {
-      width: min(900px, 100%);
-      position: relative;
-      background: #000;
-      border: 1px solid rgba(255,255,255,.25);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 20px 70px rgba(0,0,0,.55);
-    }
-
-    #youtube-player .video-frame {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      display: block;
-      border: 0;
-    }
-
-    #close-youtube {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      z-index: 1;
-      width: 40px;
-      height: 40px;
-      border: 0;
-      border-radius: 50%;
-      background: rgba(0,0,0,.8);
-      color: white;
-      font-size: 25px;
-      cursor: pointer;
-    }
 
   </style>
 
@@ -420,22 +350,6 @@
   </a-scene>
 
 
-  <!-- Separate expanded player; the AR panel keeps playing in place. -->
-  <button id="open-video-popup" type="button" aria-haspopup="dialog">⤢ Expand video</button>
-  <div id="youtube-player" role="dialog" aria-modal="true" aria-label="Expanded portfolio video">
-    <div class="player-card">
-      <button id="close-youtube" type="button" aria-label="Close video">×</button>
-      <video
-        id="popup-video"
-        class="video-frame"
-        title="Portfolio introduction video"
-        src="https://hak3du.github.io/portfolio/intro.mp4"
-        playsinline
-        controls
-        preload="metadata">
-      </video>
-    </div>
-  </div>
 
   <!-- =========================================
        JAVASCRIPT
@@ -451,69 +365,30 @@
 
     const scene =
       document.querySelector("a-scene");
-    const middlePanel =
-      document.querySelector("#panel-3");
     const paneVideo =
       document.querySelector("#intro-video");
-    const youtubePlayer =
-      document.querySelector("#youtube-player");
-    const popupVideo =
-      document.querySelector("#popup-video");
-    const openVideoPopup =
-      document.querySelector("#open-video-popup");
-    const closeYoutube =
-      document.querySelector("#close-youtube");
 
-    async function togglePaneVideo() {
-      try {
-        if (paneVideo.paused) {
-          await paneVideo.play();
-          status.innerText = "▶ Intro playing on AR panel";
-        } else {
-          paneVideo.pause();
-          status.innerText = "Intro paused — tap the panel to resume";
-        }
-      } catch (error) {
-        status.innerText = "Video could not load — check the intro.mp4 URL";
-        console.error("AR pane video playback failed:", error);
-      }
-    }
-
-    async function openVideoPopup() {
-      youtubePlayer.classList.add("open");
-      try {
-        if (Number.isFinite(paneVideo.currentTime)) {
-          popupVideo.currentTime = paneVideo.currentTime;
-        }
-        await popupVideo.play();
-      } catch (error) {
-        status.innerText = "Tap Play in the expanded video window";
-        console.error("Expanded video playback failed:", error);
-      }
-      closeYoutube.focus();
-    }
-
-    function closeYoutubePlayer() {
-      youtubePlayer.classList.remove("open");
-      if (!popupVideo.paused) {
-        try { paneVideo.currentTime = popupVideo.currentTime; } catch (_) {}
-        popupVideo.pause();
-      }
-      status.innerText = marker.object3D.visible
-        ? "✓ MARKER DETECTED"
-        : "Camera ready — scan marker";
-    }
-
-    middlePanel.addEventListener("click", togglePaneVideo);
-    openVideoPopup.addEventListener("click", openVideoPopup);
-    closeYoutube.addEventListener("click", closeYoutubePlayer);
-    youtubePlayer.addEventListener("click", function (event) {
-      if (event.target === youtubePlayer) closeYoutubePlayer();
+    // The MP4 is the texture on panel-3 itself: no overlay or separate player.
+    paneVideo.addEventListener("loadeddata", function () {
+      paneVideo.play().catch(function (error) {
+        console.info("Video will start when the marker is detected:", error);
+      });
     });
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && youtubePlayer.classList.contains("open")) {
-        closeYoutubePlayer();
+
+    async function startStackVideo() {
+      try {
+        paneVideo.muted = true;
+        await paneVideo.play();
+        status.innerText = "▶ Intro playing inside the AR stack";
+      } catch (error) {
+        status.innerText = "Tap the screen once to allow the AR video to play";
+        console.error("AR stack video playback failed:", error);
       }
+    }
+
+    marker.addEventListener("markerFound", startStackVideo);
+    marker.addEventListener("markerLost", function () {
+      paneVideo.pause();
     });
 
 
