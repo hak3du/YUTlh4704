@@ -144,7 +144,7 @@
         crossorigin="anonymous"
       >
 
-      <!-- YouTube is clipped to panel-3. As an iframe cannot be a WebGL texture, panel-3 is deliberately the frontmost card. -->
+      <!-- YouTube is projected and clipped to panel-3. Its plane is placed between panels 2 and 4; the iframe itself remains a screen-space overlay. -->
 
       <img
         id="pic4"
@@ -275,7 +275,7 @@
 
           id="panel-3"
 
-          position="0 0 0.18"
+          position="0 0 -0.60"
 
           width="2.25"
 
@@ -365,9 +365,11 @@
 
 
   <!--
-    Layer 3 video window. YouTube does not expose its stream as a WebGL texture,
-    so this iframe is projected over panel-3 and clipped to its tracked outline.
-    For a true perspective-correct video texture, use a self-hosted MP4/WebM asset.
+    Layer 3 video window. The iframe is projected and clipped to panel-3 so it
+    follows the marker and keeps a perspective-shaped outline. Its 3D plane is
+    placed between panels 2 and 4. Because this is a cross-origin YouTube iframe,
+    browser compositing still draws it above the WebGL scene; real occlusion needs
+    a local/hosted MP4 or WebM video texture.
   -->
   <div id="youtube-panel" aria-label="Intro video panel">
     <iframe
@@ -482,7 +484,7 @@
 
     marker.addEventListener("markerFound", function () {
       markerVisible = true;
-      status.innerText = "✓ MARKER DETECTED — intro video panel active (front card)";
+      status.innerText = "✓ MARKER DETECTED — cinematic video layer active";
       postYouTubeCommand("playVideo");
     });
 
