@@ -59,13 +59,19 @@
       font-size: 14px;
     }
 
+    /* The YouTube iframe is a screen-space window clipped to panel-3's
+       tracked quadrilateral. It stays attached to the AR card; it is not a popup. */
     #youtube-panel {
       position: fixed;
       display: none;
       z-index: 9000;
       overflow: hidden;
       pointer-events: auto;
-      background: #000;
+      background: #02070b;
+      border: 1px solid rgba(65, 235, 255, 0.72);
+      box-shadow: 0 0 18px rgba(0, 225, 255, 0.22);
+      transform-origin: top left;
+      will-change: left, top, width, height, clip-path;
     }
 
     #youtube-frame {
@@ -73,6 +79,11 @@
       width: 100%;
       height: 100%;
       border: 0;
+      background: #02070b;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #youtube-panel { box-shadow: none; }
     }
   </style>
 
@@ -353,7 +364,11 @@
 
 
 
-  <!-- YouTube video aligned to the existing middle AR panel, not a popup. -->
+  <!--
+    Layer 3 video window. YouTube does not expose its stream as a WebGL texture,
+    so this iframe is projected over panel-3 and clipped to its tracked outline.
+    For a true perspective-correct video texture, use a self-hosted MP4/WebM asset.
+  -->
   <div id="youtube-panel" aria-label="Intro video panel">
     <iframe
       id="youtube-frame"
@@ -398,30 +413,46 @@
       const rect = canvas.getBoundingClientRect();
       const width = rect.width;
       const height = rect.height;
-      const geometry = panel.getObject3D("mesh")?.geometry;
-      if (!geometry) {
+      const panelWidth = Number(panel.getAttribute("width")) || 2.25;
+      const panelHeight = Number(panel.getAttribute("height")) || 1.25;
+      if (!panel.getObject3D("mesh")?.geometry) {
+        overlay.style.display = "none";
         requestAnimationFrame(projectPanel);
         return;
       }
 
+      // Read the current panel dimensions so the video remains registered
+      // if layer 3 is resized later; no duplicated hard-coded corner values.
+      const halfW = panelWidth / 2;
+      const halfH = panelHeight / 2;
       const positions = [
-        [-1.125, -0.625, 0],
-        [1.125, -0.625, 0],
-        [1.125, 0.625, 0],
-        [-1.125, 0.625, 0]
+        [-halfW, -halfH, 0],
+        [halfW, -halfH, 0],
+        [halfW, halfH, 0],
+        [-halfW, halfH, 0]
       ];
 
       panel.object3D.updateWorldMatrix(true, false);
       camera.updateMatrixWorld(true);
       const points = positions.map(([x, y, z]) => {
-        const v = new THREE.Vector3(x, y, z);
-        panel.object3D.localToWorld(v);
-        v.project(camera);
+        const worldPoint = new THREE.Vector3(x, y, z);
+        panel.object3D.localToWorld(worldPoint);
+        const projected = worldPoint.clone().project(camera);
         return {
-          x: rect.left + (v.x + 1) * width / 2,
-          y: rect.top + (1 - v.y) * height / 2
+          x: rect.left + (projected.x + 1) * width / 2,
+          y: rect.top + (1 - projected.y) * height / 2,
+          depth: projected.z
         };
       });
+
+      // Hide the iframe if layer 3 is behind the camera or outside the
+      // camera's visible depth range, preventing a stray floating rectangle.
+      if (points.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y) ||
+                           !Number.isFinite(p.depth) || p.depth < -1 || p.depth > 1)) {
+        overlay.style.display = "none";
+        requestAnimationFrame(projectPanel);
+        return;
+      }
 
       const minX = Math.min(...points.map(p => p.x));
       const maxX = Math.max(...points.map(p => p.x));
@@ -441,7 +472,10 @@
       overlay.style.top = minY + "px";
       overlay.style.width = w + "px";
       overlay.style.height = h + "px";
-      const clip = points.map(p => ((p.x - minX) / w * 100).toFixed(2) + "% " + ((p.y - minY) / h * 100).toFixed(2) + "%").join(", ");
+      const clip = points.map(p =>
+        ((p.x - minX) / w * 100).toFixed(2) + "% " +
+        ((p.y - minY) / h * 100).toFixed(2) + "%"
+      ).join(", ");
       overlay.style.clipPath = "polygon(" + clip + ")";
       requestAnimationFrame(projectPanel);
     }
