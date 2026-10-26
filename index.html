@@ -59,32 +59,6 @@
       font-size: 14px;
     }
 
-    /* The YouTube iframe is a screen-space window clipped to panel-3's
-       tracked quadrilateral. It stays attached to the AR card; it is not a popup. */
-    #youtube-panel {
-      position: fixed;
-      display: none;
-      z-index: 9000;
-      overflow: hidden;
-      pointer-events: auto;
-      background: #02070b;
-      border: 1px solid rgba(65, 235, 255, 0.72);
-      box-shadow: 0 0 18px rgba(0, 225, 255, 0.22);
-      transform-origin: top left;
-      will-change: left, top, width, height, clip-path;
-    }
-
-    #youtube-frame {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      background: #02070b;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      #youtube-panel { box-shadow: none; }
-    }
   </style>
 
 </head>
@@ -144,7 +118,8 @@
         crossorigin="anonymous"
       >
 
-      <!-- YouTube is projected and clipped to panel-3. Its plane is placed between panels 2 and 4; the iframe itself remains a screen-space overlay. -->
+      <!-- Demo video texture. Replace with an authorized MP4/WebM when ready. -->
+      <video id="intro-video" src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" crossorigin="anonymous" playsinline muted loop preload="auto"></video>
 
       <img
         id="pic4"
@@ -282,9 +257,11 @@
           height="1.25"
 
           material="
+            src: #intro-video;
             shader: flat;
             transparent: true;
-            opacity: 0;
+            opacity: 0.92;
+            side: double;
             depthWrite: false;
           "
 
@@ -364,24 +341,6 @@
 
 
 
-  <!--
-    Layer 3 video window. The iframe is projected and clipped to panel-3 so it
-    follows the marker and keeps a perspective-shaped outline. Its 3D plane is
-    placed between panels 2 and 4. Because this is a cross-origin YouTube iframe,
-    browser compositing still draws it above the WebGL scene; real occlusion needs
-    a local/hosted MP4 or WebM video texture.
-  -->
-  <div id="youtube-panel" aria-label="Intro video panel">
-    <iframe
-      id="youtube-frame"
-      title="Portfolio introduction video"
-      src="https://www.youtube-nocookie.com/embed/P3MtiifXp9k?list=PLc3rHWeE3EEc&autoplay=0&mute=1&playsinline=1&controls=1&rel=0&enablejsapi=1&origin=https%3A%2F%2Fhak3du.github.io"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      referrerpolicy="strict-origin-when-cross-origin"
-      allowfullscreen>
-    </iframe>
-  </div>
-
   <!-- =========================================
        JAVASCRIPT
        ========================================= -->
@@ -389,115 +348,40 @@
     const marker = document.querySelector("#marker");
     const status = document.querySelector("#status");
     const scene = document.querySelector("a-scene");
-    const panel = document.querySelector("#panel-3");
-    const overlay = document.querySelector("#youtube-panel");
-    const frame = document.querySelector("#youtube-frame");
-    let markerVisible = false;
+    const video = document.querySelector("#intro-video");
+    const panel3 = document.querySelector("#panel-3");
 
-    function postYouTubeCommand(func) {
-      frame.contentWindow?.postMessage(JSON.stringify({
-        event: "command",
-        func,
-        args: []
-      }), "https://www.youtube-nocookie.com");
-    }
-
-    function projectPanel() {
-      if (!markerVisible || !panel || !scene.camera || !scene.renderer) {
-        overlay.style.display = "none";
-        requestAnimationFrame(projectPanel);
-        return;
-      }
-
-      const camera = scene.camera;
-      const renderer = scene.renderer;
-      const canvas = renderer.domElement;
-      const rect = canvas.getBoundingClientRect();
-      const width = rect.width;
-      const height = rect.height;
-      const panelWidth = Number(panel.getAttribute("width")) || 2.25;
-      const panelHeight = Number(panel.getAttribute("height")) || 1.25;
-      if (!panel.getObject3D("mesh")?.geometry) {
-        overlay.style.display = "none";
-        requestAnimationFrame(projectPanel);
-        return;
-      }
-
-      // Read the current panel dimensions so the video remains registered
-      // if layer 3 is resized later; no duplicated hard-coded corner values.
-      const halfW = panelWidth / 2;
-      const halfH = panelHeight / 2;
-      const positions = [
-        [-halfW, -halfH, 0],
-        [halfW, -halfH, 0],
-        [halfW, halfH, 0],
-        [-halfW, halfH, 0]
-      ];
-
-      panel.object3D.updateWorldMatrix(true, false);
-      camera.updateMatrixWorld(true);
-      const points = positions.map(([x, y, z]) => {
-        const worldPoint = new THREE.Vector3(x, y, z);
-        panel.object3D.localToWorld(worldPoint);
-        const projected = worldPoint.clone().project(camera);
-        return {
-          x: rect.left + (projected.x + 1) * width / 2,
-          y: rect.top + (1 - projected.y) * height / 2,
-          depth: projected.z
-        };
-      });
-
-      // Hide the iframe if layer 3 is behind the camera or outside the
-      // camera's visible depth range, preventing a stray floating rectangle.
-      if (points.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y) ||
-                           !Number.isFinite(p.depth) || p.depth < -1 || p.depth > 1)) {
-        overlay.style.display = "none";
-        requestAnimationFrame(projectPanel);
-        return;
-      }
-
-      const minX = Math.min(...points.map(p => p.x));
-      const maxX = Math.max(...points.map(p => p.x));
-      const minY = Math.min(...points.map(p => p.y));
-      const maxY = Math.max(...points.map(p => p.y));
-      const w = maxX - minX;
-      const h = maxY - minY;
-
-      if (![minX, maxX, minY, maxY, w, h].every(Number.isFinite) || w < 2 || h < 2) {
-        overlay.style.display = "none";
-        requestAnimationFrame(projectPanel);
-        return;
-      }
-
-      overlay.style.display = "block";
-      overlay.style.left = minX + "px";
-      overlay.style.top = minY + "px";
-      overlay.style.width = w + "px";
-      overlay.style.height = h + "px";
-      const clip = points.map(p =>
-        ((p.x - minX) / w * 100).toFixed(2) + "% " +
-        ((p.y - minY) / h * 100).toFixed(2) + "%"
-      ).join(", ");
-      overlay.style.clipPath = "polygon(" + clip + ")";
-      requestAnimationFrame(projectPanel);
-    }
-
-    marker.addEventListener("markerFound", function () {
-      markerVisible = true;
-      status.innerText = "✓ MARKER DETECTED — cinematic video layer active";
-      postYouTubeCommand("playVideo");
+    // Keep video texture playing on the tracked 3D plane. Unlike a YouTube
+    // iframe, this is rendered by WebGL and can be naturally occluded by panels.
+    video.addEventListener("loadeddata", () => {
+      status.innerText = "Video texture ready — scan marker";
     });
 
-    marker.addEventListener("markerLost", function () {
-      markerVisible = false;
-      overlay.style.display = "none";
+    marker.addEventListener("markerFound", async () => {
+      status.innerText = "✓ MARKER DETECTED — 3D video layer active";
+      try {
+        await video.play();
+      } catch (err) {
+        status.innerText = "Marker detected — tap the video layer to play";
+      }
+    });
+
+    marker.addEventListener("markerLost", () => {
+      video.pause();
       status.innerText = "Marker lost — point camera at marker";
-      postYouTubeCommand("pauseVideo");
     });
 
-    scene.addEventListener("loaded", function () {
+    panel3.addEventListener("click", async () => {
+      try {
+        if (video.paused) await video.play();
+        else video.pause();
+      } catch (err) {
+        status.innerText = "Tap to start video playback";
+      }
+    });
+
+    scene.addEventListener("loaded", () => {
       status.innerText = "Camera ready — scan marker";
-      requestAnimationFrame(projectPanel);
     });
   </script>
 
