@@ -61,6 +61,11 @@
       transform-origin: top left; will-change: left,top,width,height,clip-path;
     }
     #youtube-frame { display:block; width:100%; height:100%; border:0; background:#02070b; }
+    #immersive-controls { position:fixed; right:16px; bottom:18px; z-index:11000; display:flex; gap:8px; }
+    #immersive-controls button { border:1px solid rgba(220,190,120,.8); border-radius:999px; padding:12px 16px; color:#f7e8c5; background:rgba(8,8,10,.88); font:600 12px Arial,sans-serif; letter-spacing:.08em; }
+    #immersive-controls button:active { transform:scale(.98); }
+    #exit-360 { display:none; }
+    #status { max-width:calc(100vw - 40px); }
   </style>
 
 </head>
@@ -75,6 +80,12 @@
 
   <div id="status">
     Starting AR...
+  </div>
+
+  <div id="immersive-controls" aria-label="Immersive wedding video controls">
+    <button id="enter-360" type="button">ENTER 360° MEMORY</button>
+    <button id="exit-360" type="button">EXIT 360°</button>
+    <button id="youtube-360" type="button">YOUTUBE 360° DEMO</button>
   </div>
 
 
@@ -130,6 +141,19 @@
         src="./portfolio5.png"
         crossorigin="anonymous"
       >
+
+      <!-- Add an equirectangular 360-degree wedding MP4 at this path.
+           YouTube streams cannot be used as WebGL video textures. -->
+      <video
+        id="wedding-360-video"
+        src="./assets/wedding-360.mp4"
+        preload="auto"
+        playsinline
+        webkit-playsinline
+        muted
+        loop
+        crossorigin="anonymous"
+      ></video>
 
     </a-assets>
 
@@ -324,7 +348,7 @@
          CAMERA
          ========================================= -->
 
-    <a-entity camera>
+    <a-entity id="ar-camera" camera>
       <a-entity
         cursor="fuse: false; rayOrigin: entity"
         raycaster="objects: #panel-3; far: 10"
@@ -339,7 +363,7 @@
   <!-- YouTube iframe overlay follows panel 3 in screen space (legacy layout). -->
   <div id="youtube-panel" aria-label="Intro video panel">
     <iframe id="youtube-frame" title="Portfolio introduction video"
-      src="https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=0&mute=1&playsinline=1&controls=1&rel=0&enablejsapi=1&origin=https%3A%2F%2Fhak3du.github.io"
+      src="https://www.youtube-nocookie.com/embed/hSNLuPRiWWA?autoplay=0&mute=1&playsinline=1&controls=1&rel=0&enablejsapi=1&origin=https%3A%2F%2Fhak3du.github.io"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
       referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </div>
@@ -355,6 +379,62 @@
     const overlay = document.querySelector("#youtube-panel");
     const frame = document.querySelector("#youtube-frame");
     let markerVisible = false;
+    let immersive360Active = false;
+    let sphereMesh = null;
+    const wedding360Video = document.querySelector("#wedding-360-video");
+    const cameraEntity = document.querySelector("#ar-camera");
+    const enter360Button = document.querySelector("#enter-360");
+    const exit360Button = document.querySelector("#exit-360");
+    const youtube360Button = document.querySelector("#youtube-360");
+
+    function create360VideoSphere() {
+      if (sphereMesh || !cameraEntity?.object3D) return;
+      const texture = new THREE.VideoTexture(wedding360Video);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      const geometry = new THREE.SphereGeometry(40, 64, 48);
+      const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
+      sphereMesh = new THREE.Mesh(geometry, material);
+      sphereMesh.visible = false;
+      sphereMesh.frustumCulled = false;
+      cameraEntity.object3D.add(sphereMesh);
+    }
+
+    async function enter360Memory() {
+      create360VideoSphere();
+      if (!sphereMesh) {
+        status.innerText = "360 viewer is still initializing.";
+        return;
+      }
+      try {
+        await wedding360Video.play();
+        immersive360Active = true;
+        sphereMesh.visible = true;
+        enter360Button.style.display = "none";
+        exit360Button.style.display = "inline-block";
+        overlay.style.display = "none";
+        status.innerText = "360° MEMORY ACTIVE — move your camera to look around";
+      } catch (error) {
+        status.innerText = "Add ./assets/wedding-360.mp4 to enable the Three.js 360° viewer.";
+        console.warn("360 video playback could not start:", error);
+      }
+    }
+
+    function exit360Memory() {
+      immersive360Active = false;
+      if (sphereMesh) sphereMesh.visible = false;
+      wedding360Video.pause();
+      enter360Button.style.display = "inline-block";
+      exit360Button.style.display = "none";
+      status.innerText = markerVisible ? "AR marker detected." : "Point camera at the AR marker.";
+    }
+
+    enter360Button.addEventListener("click", enter360Memory);
+    exit360Button.addEventListener("click", exit360Memory);
+    youtube360Button.addEventListener("click", () => {
+      window.open("https://www.youtube.com/watch?v=hSNLuPRiWWA", "_blank", "noopener,noreferrer");
+    });
 
     function postYouTubeCommand(func) {
       frame.contentWindow?.postMessage(JSON.stringify({event:"command",func,args:[]}), "https://www.youtube-nocookie.com");
@@ -410,6 +490,7 @@
     });
     scene.addEventListener("loaded", () => {
       status.innerText="Camera ready — scan marker";
+      create360VideoSphere();
       requestAnimationFrame(projectPanel);
     });
   </script>
