@@ -52,6 +52,32 @@
       background: rgba(0,0,0,.75); color: white;
       font-family: Arial, sans-serif; font-size: 14px;
     }
+    /* YouTube playback surface, positioned over Layer 3's projected screen area. */
+    #youtube-panel {
+      position: fixed;
+      display: none;
+      z-index: 9000;
+      overflow: hidden;
+      background: #000;
+    }
+    #youtube-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    #youtube-close {
+      position: absolute;
+      z-index: 2;
+      top: 4px;
+      right: 4px;
+      border: 0;
+      border-radius: 3px;
+      padding: 4px 7px;
+      color: white;
+      background: rgba(0,0,0,.75);
+      cursor: pointer;
+    }
 
   </style>
 
@@ -67,6 +93,17 @@
 
   <div id="status">
     Starting AR...
+  </div>
+  <div id="youtube-panel" aria-label="YouTube video playing on Layer 3">
+    <button id="youtube-close" type="button" aria-label="Close video">×</button>
+    <iframe
+      id="youtube-frame"
+      title="Layer 3 video"
+      src="about:blank"
+      allow="autoplay; encrypted-media; picture-in-picture; web-share"
+      allowfullscreen
+      referrerpolicy="strict-origin-when-cross-origin"
+    ></iframe>
   </div>
 
 
@@ -339,27 +376,110 @@
     const status = document.querySelector("#status");
     const scene = document.querySelector("a-scene");
     const videoPanel = document.querySelector("#panel-3");
+    const youtubeOverlay = document.querySelector("#youtube-panel");
+    const youtubeFrame = document.querySelector("#youtube-frame");
+    const youtubeClose = document.querySelector("#youtube-close");
+    const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=1&playsinline=1&controls=1&rel=0";
+
+    let markerVisible = false;
+    let youtubeOpen = false;
+
+    function closeYoutube() {
+      youtubeOpen = false;
+      youtubeOverlay.style.display = "none";
+      youtubeFrame.src = "about:blank";
+    }
+
+    youtubeClose.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeYoutube();
+    });
+
+    // A tap on the native Layer 3 plane opens the embedded player in place.
+    videoPanel.addEventListener("click", () => {
+      if (!markerVisible) return;
+      youtubeOpen = true;
+      youtubeFrame.src = YOUTUBE_EMBED;
+      youtubeOverlay.style.display = "block";
+    });
 
     marker.addEventListener("markerFound", () => {
+      markerVisible = true;
       status.innerText = "✓ MARKER DETECTED — portfolio stack active";
     });
 
     marker.addEventListener("markerLost", () => {
+      markerVisible = false;
+      closeYoutube();
       status.innerText = "Marker lost — point camera at marker";
     });
 
-    // Layer 3 remains a native marker-attached A-Frame plane.
-    // Clicking its thumbnail opens the source video separately.
-    videoPanel.addEventListener("click", () => {
-      window.open(
-        "https://www.youtube.com/watch?v=qGlJVZP9Ie8",
-        "_blank",
-        "noopener,noreferrer"
-      );
+    // Keep the embedded YouTube player aligned to Layer 3's projected bounds.
+    // The iframe is an HTML surface, so browsers composite it above WebGL;
+    // it cannot participate in the scene's true 3D depth test.
+    AFRAME.registerComponent("youtube-panel-tracker", {
+      tick: function () {
+        if (!youtubeOpen || !markerVisible || !scene.camera) {
+          youtubeOverlay.style.display = "none";
+          return;
+        }
+
+        const mesh = videoPanel.getObject3D("mesh");
+        if (!mesh) return;
+
+        scene.object3D.updateMatrixWorld(true);
+        scene.camera.updateMatrixWorld(true);
+
+        const halfW = 1.8;
+        const halfH = 1.0;
+        const corners = [
+          new THREE.Vector3(-halfW, -halfH, 0),
+          new THREE.Vector3( halfW, -halfH, 0),
+          new THREE.Vector3( halfW,  halfH, 0),
+          new THREE.Vector3(-halfW,  halfH, 0)
+        ];
+
+        const canvasRect = scene.canvas.getBoundingClientRect();
+        const points = corners.map((corner) => {
+          mesh.localToWorld(corner);
+          corner.project(scene.camera);
+          return {
+            x: canvasRect.left + (corner.x + 1) * canvasRect.width / 2,
+            y: canvasRect.top + (1 - corner.y) * canvasRect.height / 2,
+            z: corner.z
+          };
+        });
+
+        if (points.some(p => p.z < -1 || p.z > 1)) {
+          youtubeOverlay.style.display = "none";
+          return;
+        }
+
+        const xs = points.map(p => p.x);
+        const ys = points.map(p => p.y);
+        const left = Math.max(0, Math.min(...xs));
+        const top = Math.max(0, Math.min(...ys));
+        const right = Math.min(window.innerWidth, Math.max(...xs));
+        const bottom = Math.min(window.innerHeight, Math.max(...ys));
+        const width = right - left;
+        const height = bottom - top;
+
+        if (width < 48 || height < 30) {
+          youtubeOverlay.style.display = "none";
+          return;
+        }
+
+        youtubeOverlay.style.left = left + "px";
+        youtubeOverlay.style.top = top + "px";
+        youtubeOverlay.style.width = width + "px";
+        youtubeOverlay.style.height = height + "px";
+        youtubeOverlay.style.display = "block";
+      }
     });
 
     scene.addEventListener("loaded", () => {
-      // Explicit transparent-panel ordering: back to front.
+      scene.setAttribute("youtube-panel-tracker", "");
+
       const panelOrder = {
         "panel-1": 1,
         "panel-2": 2,
