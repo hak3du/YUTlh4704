@@ -53,21 +53,6 @@
       font-family: Arial, sans-serif; font-size: 14px;
     }
 
-    /* YouTube is an HTML overlay projected onto Layer 3's tracked position. */
-    #youtube-panel {
-      position: fixed;
-      display: none;
-      z-index: 9000;
-      overflow: hidden;
-      background: #05080c;
-      pointer-events: auto;
-    }
-    #youtube-panel iframe {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
-    }
   </style>
 
 </head>
@@ -84,16 +69,6 @@
     Starting AR...
   </div>
 
-  <div id="youtube-panel" aria-label="Layer 3 YouTube video">
-    <iframe
-      id="youtube-frame"
-      title="Layer 3 video"
-      src="about:blank"
-      allow="autoplay; encrypted-media; picture-in-picture; web-share"
-      allowfullscreen
-      referrerpolicy="strict-origin-when-cross-origin"
-    ></iframe>
-  </div>
 
 
   <!-- =========================================
@@ -146,6 +121,12 @@
       <img
         id="pic5"
         src="./portfolio5.png"
+        crossorigin="anonymous"
+      >
+
+      <img
+        id="pic3"
+        src="https://i.ytimg.com/vi/qGlJVZP9Ie8/hqdefault.jpg"
         crossorigin="anonymous"
       >
 
@@ -269,11 +250,12 @@
           width="3.6"
           height="2"
           material="
-            color: #05080c;
+            src: #pic3;
             shader: flat;
             transparent: true;
             opacity: 0.96;
             depthWrite: false;
+            side: double;
           "
         ></a-plane>
 
@@ -338,7 +320,12 @@
          CAMERA
          ========================================= -->
 
-    <a-entity id="ar-camera" camera></a-entity>
+    <a-entity id="ar-camera" camera>
+      <a-entity
+        cursor="rayOrigin: mouse"
+        raycaster="objects: #panel-3"
+      ></a-entity>
+    </a-entity>
 
 
   </a-scene>
@@ -352,100 +339,27 @@
     const status = document.querySelector("#status");
     const scene = document.querySelector("a-scene");
     const videoPanel = document.querySelector("#panel-3");
-    const youtubeOverlay = document.querySelector("#youtube-panel");
-    const youtubeFrame = document.querySelector("#youtube-frame");
-    const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=1&playsinline=1&controls=1&rel=0";
-
-    let markerVisible = false;
-    let youtubeStarted = false;
 
     marker.addEventListener("markerFound", () => {
-      markerVisible = true;
       status.innerText = "✓ MARKER DETECTED — portfolio stack active";
-      if (!youtubeStarted) {
-        youtubeFrame.src = YOUTUBE_EMBED;
-        youtubeStarted = true;
-      }
-      youtubeOverlay.style.display = "block";
     });
 
     marker.addEventListener("markerLost", () => {
-      markerVisible = false;
-      youtubeOverlay.style.display = "none";
-      youtubeFrame.src = "about:blank";
-      youtubeStarted = false;
       status.innerText = "Marker lost — point camera at marker";
     });
 
-    // Project the 3D panel's four corners into screen space each frame.
-    // The YouTube iframe therefore tracks marker movement and scale.
+    // Layer 3 remains a native marker-attached A-Frame plane.
+    // Clicking its thumbnail opens the source video separately.
+    videoPanel.addEventListener("click", () => {
+      window.open(
+        "https://www.youtube.com/watch?v=qGlJVZP9Ie8",
+        "_blank",
+        "noopener,noreferrer"
+      );
+    });
+
     scene.addEventListener("loaded", () => {
-      scene.setAttribute("youtube-panel-tracker", "");
-    });
-
-    AFRAME.registerComponent("youtube-panel-tracker", {
-      tick: function () {
-        if (!markerVisible || !scene.camera || !videoPanel.object3D) {
-          youtubeOverlay.style.display = "none";
-          return;
-        }
-
-        const mesh = videoPanel.getObject3D("mesh");
-        if (!mesh) return;
-
-        scene.object3D.updateMatrixWorld(true);
-        scene.camera.updateMatrixWorld(true);
-
-        const halfW = 1.8;
-        const halfH = 1.0;
-        const corners = [
-          new THREE.Vector3(-halfW, -halfH, 0),
-          new THREE.Vector3( halfW, -halfH, 0),
-          new THREE.Vector3( halfW,  halfH, 0),
-          new THREE.Vector3(-halfW,  halfH, 0)
-        ];
-
-        const rect = scene.canvas.getBoundingClientRect();
-        const projected = corners.map((corner) => {
-          mesh.localToWorld(corner);
-          corner.project(scene.camera);
-          return {
-            x: rect.left + (corner.x + 1) * rect.width / 2,
-            y: rect.top + (1 - corner.y) * rect.height / 2,
-            z: corner.z
-          };
-        });
-
-        if (projected.some(p => p.z < -1 || p.z > 1)) {
-          youtubeOverlay.style.display = "none";
-          return;
-        }
-
-        const xs = projected.map(p => p.x);
-        const ys = projected.map(p => p.y);
-        const left = Math.min(...xs);
-        const top = Math.min(...ys);
-        const width = Math.max(...xs) - left;
-        const height = Math.max(...ys) - top;
-
-        if (width < 40 || height < 24 ||
-            left > window.innerWidth || top > window.innerHeight ||
-            left + width < 0 || top + height < 0) {
-          youtubeOverlay.style.display = "none";
-          return;
-        }
-
-        youtubeOverlay.style.left = left + "px";
-        youtubeOverlay.style.top = top + "px";
-        youtubeOverlay.style.width = width + "px";
-        youtubeOverlay.style.height = height + "px";
-        youtubeOverlay.style.display = "block";
-      }
-    });
-
-    document.querySelector("a-scene").addEventListener("loaded", () => {
       // Explicit transparent-panel ordering: back to front.
-      // Larger renderOrder values are drawn later.
       const panelOrder = {
         "panel-1": 1,
         "panel-2": 2,
