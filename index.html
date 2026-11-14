@@ -434,7 +434,7 @@
     });
 
     // Project any panel's four corners into viewport coordinates.
-    function projectPanel(panelId, width, height) {
+    function projectPanel(panelId, width, height, canvasRect) {
       const panel = document.getElementById(panelId);
       const mesh = panel && panel.getObject3D("mesh");
       if (!mesh || !scene.camera) return null;
@@ -490,13 +490,14 @@
           return;
         }
 
+        try {
         scene.object3D.updateMatrixWorld(true);
         scene.camera.updateMatrixWorld(true);
         const canvasRect = scene.canvas.getBoundingClientRect();
 
-        const panel3 = projectPanel("panel-3", 3.6, 2.0);
-        const panel4 = projectPanel("panel-4", 5.2, 2.89);
-        const panel5 = projectPanel("panel-5", 3.6, 2.0);
+        const panel3 = projectPanel("panel-3", 3.6, 2.0, canvasRect);
+        const panel4 = projectPanel("panel-4", 5.2, 2.89, canvasRect);
+        const panel5 = projectPanel("panel-5", 3.6, 2.0, canvasRect);
 
         if (!panel3 || !panel4 || !panel5 ||
             [...panel3, ...panel4, ...panel5].some(p => p.z < -1 || p.z > 1)) {
@@ -527,6 +528,10 @@
         // that reveal the real A-Frame foreground panels underneath.
         setMask(panel3, panel4, panel5, width, height, left, top);
         youtubeOverlay.style.display = "block";
+        } catch (error) {
+          console.warn("Layer 3 YouTube mask paused:", error);
+          youtubeOverlay.style.display = "none";
+        }
       }
     });
 
