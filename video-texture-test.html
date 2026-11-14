@@ -117,25 +117,17 @@
 
     playButton.addEventListener('click', async () => {
       try {
-        await video.play();
-        playButton.textContent = 'Ⅱ Pause video';
-        status.textContent = 'Playing through THREE.VideoTexture inside the A-Frame scene.';
+        if (video.paused) {
+          await video.play();
+          playButton.textContent = 'Ⅱ Pause video';
+          status.textContent = 'Playing through THREE.VideoTexture inside the A-Frame scene.';
+        } else {
+          video.pause();
+          playButton.textContent = '▶ Start video';
+          status.textContent = 'Paused. The video remains a texture on Layer 3.';
+        }
       } catch (error) {
         status.textContent = 'Video could not start: ' + error.message;
-      }
-    });
-
-    playButton.addEventListener('click', () => {
-      if (!video.paused) {
-        playButton.onclick = () => {
-          if (video.paused) {
-            video.play();
-            playButton.textContent = 'Ⅱ Pause video';
-          } else {
-            video.pause();
-            playButton.textContent = '▶ Start video';
-          }
-        };
       }
     });
   </script>
