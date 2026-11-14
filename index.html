@@ -52,15 +52,13 @@
       background: rgba(0,0,0,.75); color: white;
       font-family: Arial, sans-serif; font-size: 14px;
     }
-    /* Independent phone control and centered YouTube player. */
+    /* Marker-projected Layer 3 YouTube overlay. */
     #video-launch { position:fixed; z-index:8000; left:50%; bottom:max(22px,env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; align-items:center; gap:10px; border:1px solid rgba(145,225,255,.68); border-radius:999px; padding:13px 21px; color:#eafaff; background:linear-gradient(135deg,rgba(8,28,44,.96),rgba(5,13,25,.96)); box-shadow:0 0 0 1px rgba(80,190,255,.12),0 8px 30px rgba(0,0,0,.38),0 0 22px rgba(0,170,255,.18); font:700 11px/1 Arial,sans-serif; letter-spacing:1.8px; text-transform:uppercase; cursor:pointer; -webkit-tap-highlight-color:transparent; }
     #video-launch .play-mark { display:inline-grid; place-items:center; width:23px; height:23px; border:1px solid rgba(145,225,255,.72); border-radius:50%; color:#9beaff; font-size:10px; letter-spacing:0; }
-    #youtube-backdrop { position:fixed; inset:0; z-index:8998; display:none; background:rgba(1,7,14,.84); backdrop-filter:blur(9px); -webkit-backdrop-filter:blur(9px); }
-    #youtube-panel { position:fixed; z-index:8999; display:none; left:50%; top:50%; transform:translate(-50%,-50%); width:min(92vw,900px); aspect-ratio:16/9; overflow:hidden; background:#05070b; border:1px solid rgba(155,220,255,.82); border-radius:10px; box-shadow:0 0 0 1px rgba(30,160,220,.22),0 0 30px rgba(0,170,255,.24),0 18px 55px rgba(0,0,0,.58); box-sizing:border-box; }
+    #video-overlay { position:fixed; z-index:9000; display:none; overflow:hidden; background:#000; border:1px solid rgba(155,220,255,.82); box-shadow:0 0 18px rgba(0,170,255,.22); box-sizing:border-box; }
     #youtube-frame { position:absolute; inset:0; width:100%; height:100%; border:0; display:block; background:#000; }
-    #youtube-chrome { position:absolute; z-index:3; top:0; left:0; right:0; height:30px; display:flex; align-items:center; justify-content:space-between; padding:0 9px 0 12px; box-sizing:border-box; color:rgba(225,245,255,.95); background:linear-gradient(90deg,rgba(5,13,23,.94),rgba(9,36,53,.76)); border-bottom:1px solid rgba(140,220,255,.42); font:600 9px/1 Arial,sans-serif; letter-spacing:1.35px; text-transform:uppercase; pointer-events:none; }
-    #youtube-close { pointer-events:auto; border:1px solid rgba(210,240,255,.5); border-radius:5px; width:22px; height:22px; padding:0; color:white; background:rgba(0,0,0,.55); font:16px/18px Arial,sans-serif; cursor:pointer; }
-    @media (max-width:600px) { #video-launch { bottom:max(18px,env(safe-area-inset-bottom)); padding:12px 18px; font-size:10px; } #youtube-panel { width:94vw; border-radius:6px; } #youtube-chrome { height:25px; font-size:8px; } #youtube-close { width:19px; height:19px; line-height:16px; } }
+    #youtube-close { position:absolute; z-index:2; top:5px; right:5px; width:27px; height:27px; padding:0; border:1px solid rgba(210,240,255,.65); border-radius:5px; color:white; background:rgba(0,0,0,.72); font:19px/23px Arial,sans-serif; cursor:pointer; }
+    @media (max-width:600px) { #video-launch { bottom:max(18px,env(safe-area-inset-bottom)); padding:12px 18px; font-size:10px; } #youtube-close { width:24px; height:24px; line-height:20px; } }
 
   </style>
 
@@ -77,15 +75,12 @@
   <div id="status">
     Starting AR...
   </div>
-  <button id="video-launch" type="button" aria-label="Play portfolio video"><span class="play-mark">▶</span><span>Watch film</span></button>
-  <div id="youtube-backdrop"></div>
-  <div id="youtube-panel" role="dialog" aria-modal="true" aria-label="Portfolio video player">
+  <button id="video-launch" type="button" aria-label="Play portfolio video"><span class="play-mark">▶</span><span>Play Layer 03</span></button>
+  <div id="video-overlay" aria-label="Layer 3 video">
     <iframe id="youtube-frame" title="Layer 3 video" src="about:blank"
       allow="autoplay; encrypted-media; picture-in-picture; web-share"
       allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-    <div id="youtube-chrome"><span>Layer 03 / Video</span>
-      <button id="youtube-close" type="button" aria-label="Close video">×</button>
-    </div>
+    <button id="youtube-close" type="button" aria-label="Stop video and restore layers">×</button>
   </div>
 
 
@@ -258,9 +253,8 @@
 
 
         <!-- =====================================
-             PORTFOLIO 3 — TRACKED VIDEO PANEL
-             YouTube playback is projected over this
-             marker-attached plane by the overlay tracker.
+             PORTFOLIO 3 — VIDEO PANEL
+             YouTube is projected over this marker plane.
              ===================================== -->
         <a-plane
           id="panel-3"
@@ -351,52 +345,127 @@
     const marker = document.querySelector("#marker");
     const status = document.querySelector("#status");
     const scene = document.querySelector("a-scene");
-    const youtubeOverlay = document.querySelector("#youtube-panel");
-    const youtubeBackdrop = document.querySelector("#youtube-backdrop");
+    const videoOverlay = document.querySelector("#video-overlay");
     const youtubeFrame = document.querySelector("#youtube-frame");
     const youtubeClose = document.querySelector("#youtube-close");
     const videoLaunch = document.querySelector("#video-launch");
+    const panel3 = document.querySelector("#panel-3");
+    const stackPanels = ["#panel-1", "#panel-2", "#panel-4", "#panel-5"]
+      .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1";
     let markerVisible = false;
     let youtubeOpen = false;
+    let animationFrame = 0;
+
+    function setArtworkVisible(visible) {
+      stackPanels.forEach(panel => panel.setAttribute("visible", visible));
+      panel3.setAttribute("visible", !youtubeOpen);
+    }
+
+    function projectVideoPanel() {
+      if (!youtubeOpen || !markerVisible || !scene.camera || !panel3.object3D) {
+        videoOverlay.style.display = "none";
+        return;
+      }
+
+      panel3.object3D.updateWorldMatrix(true, false);
+      scene.camera.updateMatrixWorld(true);
+      const halfW = 1.8;
+      const halfH = 1.0;
+      const corners = [
+        new THREE.Vector3(-halfW, -halfH, 0),
+        new THREE.Vector3( halfW, -halfH, 0),
+        new THREE.Vector3( halfW,  halfH, 0),
+        new THREE.Vector3(-halfW,  halfH, 0)
+      ];
+
+      const projected = corners.map(point => {
+        point.applyMatrix4(panel3.object3D.matrixWorld);
+        point.project(scene.camera);
+        return {
+          x: (point.x * 0.5 + 0.5) * window.innerWidth,
+          y: (-point.y * 0.5 + 0.5) * window.innerHeight,
+          z: point.z
+        };
+      });
+
+      if (projected.some(point => point.z < -1 || point.z > 1)) {
+        videoOverlay.style.display = "none";
+        return;
+      }
+
+      const xs = projected.map(point => point.x);
+      const ys = projected.map(point => point.y);
+      const left = Math.max(0, Math.min(...xs));
+      const top = Math.max(0, Math.min(...ys));
+      const right = Math.min(window.innerWidth, Math.max(...xs));
+      const bottom = Math.min(window.innerHeight, Math.max(...ys));
+
+      if (right - left < 24 || bottom - top < 24) {
+        videoOverlay.style.display = "none";
+        return;
+      }
+
+      videoOverlay.style.left = left + "px";
+      videoOverlay.style.top = top + "px";
+      videoOverlay.style.width = (right - left) + "px";
+      videoOverlay.style.height = (bottom - top) + "px";
+      videoOverlay.style.display = "block";
+    }
+
+    function trackVideo() {
+      if (!youtubeOpen) return;
+      projectVideoPanel();
+      animationFrame = requestAnimationFrame(trackVideo);
+    }
 
     function openYoutube() {
       if (youtubeOpen) return;
+      if (!markerVisible) {
+        status.innerText = "Scan the marker first, then play Layer 03";
+        return;
+      }
       youtubeOpen = true;
+      setArtworkVisible(false);
       youtubeFrame.src = YOUTUBE_EMBED;
-      youtubeBackdrop.style.display = "block";
-      youtubeOverlay.style.display = "block";
-      status.innerText = markerVisible
-        ? "Video playing independently — AR artwork remains unchanged"
-        : "Video playing — point camera at marker to view the AR artwork";
+      videoLaunch.style.display = "none";
+      trackVideo();
+      status.innerText = "✓ LAYER 03 VIDEO ACTIVE";
     }
 
     function closeYoutube() {
+      if (!youtubeOpen) return;
       youtubeOpen = false;
-      youtubeOverlay.style.display = "none";
-      youtubeBackdrop.style.display = "none";
+      cancelAnimationFrame(animationFrame);
       youtubeFrame.src = "about:blank";
-      if (markerVisible) status.innerText = "✓ MARKER DETECTED";
+      videoOverlay.style.display = "none";
+      setArtworkVisible(true);
+      videoLaunch.style.display = "flex";
+      status.innerText = markerVisible
+        ? "✓ MARKER DETECTED"
+        : "Marker lost — point camera at marker";
     }
 
     videoLaunch.addEventListener("click", openYoutube);
     youtubeClose.addEventListener("click", closeYoutube);
-    youtubeBackdrop.addEventListener("click", closeYoutube);
-    document.addEventListener("keydown", function(event) {
-      if (event.key === "Escape" && youtubeOpen) closeYoutube();
-    });
 
     marker.addEventListener("markerFound", function() {
       markerVisible = true;
       if (!youtubeOpen) status.innerText = "✓ MARKER DETECTED";
     });
+
     marker.addEventListener("markerLost", function() {
       markerVisible = false;
-      if (!youtubeOpen) status.innerText = "Marker lost — point camera at marker";
+      if (youtubeOpen) closeYoutube();
+      status.innerText = "Marker lost — point camera at marker";
     });
 
     scene.addEventListener("loaded", function() {
       status.innerText = "Camera ready — scan marker";
+    });
+
+    window.addEventListener("resize", function() {
+      if (youtubeOpen) projectVideoPanel();
     });
   </script>
 
