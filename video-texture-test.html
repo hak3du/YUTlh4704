@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>A-Frame WebGL VideoTexture Occlusion Test</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #050b13; }
+    a-scene { width: 100%; height: 100%; }
+    #controls {
+      position: fixed; z-index: 20; top: max(14px, env(safe-area-inset-top)); left: 50%;
+      transform: translateX(-50%); display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border: 1px solid rgba(126,220,255,.28); border-radius: 14px;
+      background: rgba(4,15,27,.88); backdrop-filter: blur(12px); color: #e8f7ff;
+      box-shadow: 0 12px 40px rgba(0,0,0,.3); max-width: calc(100vw - 28px);
+    }
+    #play {
+      border: 0; border-radius: 9px; padding: 10px 14px; background: #8de7ff;
+      color: #06121d; font-weight: 750; cursor: pointer; white-space: nowrap;
+    }
+    #status { font-size: 12px; line-height: 1.35; color: #b6d2e1; }
+    #source { display:none; }
+  </style>
+  <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+  <script>
+    AFRAME.registerComponent('webgl-video-texture', {
+      init: function () {
+        const video = document.querySelector('#source');
+        const mesh = this.el.getObject3D('mesh');
+        if (!mesh) {
+          this.el.addEventListener('object3dset', (event) => {
+            if (event.detail.type === 'mesh') this.applyTexture(video);
+          }, { once: true });
+        } else {
+          this.applyTexture(video);
+        }
+      },
+      applyTexture: function (video) {
+        const mesh = this.el.getObject3D('mesh');
+        if (!mesh || this.textureApplied) return;
+        this.textureApplied = true;
+        const texture = new THREE.VideoTexture(video);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          side: THREE.DoubleSide,
+          transparent: false,
+          depthTest: true,
+          depthWrite: true
+        });
+        mesh.material = material;
+        mesh.material.needsUpdate = true;
+        this.texture = texture;
+      },
+      remove: function () {
+        if (this.texture) this.texture.dispose();
+      }
+    });
+  </script>
+</head>
+<body>
+  <div id="controls">
+    <button id="play" type="button">▶ Start video</button>
+    <div id="status">Layer 3 is a WebGL VideoTexture. Foreground geometry should occlude it.</div>
+  </div>
+
+  <video id="source" crossorigin="anonymous" playsinline loop muted preload="auto">
+    <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">
+  </video>
+
+  <a-scene embedded background="color: #050b13"
+    renderer="antialias: true; alpha: false; colorManagement: true"
+    vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-entity camera position="0 0 6" look-controls="enabled: false"></a-entity>
+
+    <!-- Layer 1: rear image-plane stand-in -->
+    <a-plane position="-0.34 0.20 -1.05" width="4.25" height="2.55"
+      material="shader: flat; color: #163c55; transparent: true; opacity: 0.52; side: double"></a-plane>
+    <!-- Layer 2: second image-plane stand-in -->
+    <a-plane position="0.18 -0.12 -0.68" width="3.95" height="2.35"
+      material="shader: flat; color: #28617a; transparent: true; opacity: 0.34; side: double"></a-plane>
+
+    <!-- Layer 3: actual video rendered by THREE.VideoTexture on this A-Frame mesh -->
+    <a-plane id="video-layer" position="0 0 -0.28" width="3.6" height="2.025"
+      webgl-video-texture></a-plane>
+
+    <!-- Layer 4: translucent image plane plus solid foreground geometry -->
+    <a-plane position="0.22 0.10 0.08" width="3.45" height="1.94"
+      material="shader: flat; color: #7adfff; transparent: true; opacity: 0.13; side: double; depthWrite: false"></a-plane>
+    <a-box position="-1.20 0.10 0.13" width="0.48" height="1.94" depth="0.06"
+      material="shader: flat; color: #0b2235"></a-box>
+    <a-box position="0.15 0.88 0.13" width="2.58" height="0.20" depth="0.06"
+      material="shader: flat; color: #0b2235"></a-box>
+
+    <!-- Layer 5: front plane and opaque shapes that must win the depth test -->
+    <a-plane position="0.36 -0.16 0.43" width="3.25" height="1.82"
+      material="shader: flat; color: #b6efff; transparent: true; opacity: 0.10; side: double; depthWrite: false"></a-plane>
+    <a-box position="1.05 -0.05 0.49" width="0.42" height="1.82" depth="0.06"
+      material="shader: flat; color: #d9f7ff"></a-box>
+    <a-box position="-0.02 -0.93 0.49" width="2.35" height="0.16" depth="0.06"
+      material="shader: flat; color: #d9f7ff"></a-box>
+
+    <a-text value="FIVE-LAYER DEPTH TEST" position="-1.65 1.65 0.55"
+      width="3.8" color="#d8f5ff" shader="msdf" negate="false"></a-text>
+    <a-text value="Foreground bars should cover the moving video" position="-1.65 -1.65 0.55"
+      width="4.2" color="#9ab9ca" shader="msdf" negate="false"></a-text>
+  </a-scene>
+
+  <script>
+    const video = document.querySelector('#source');
+    const playButton = document.querySelector('#play');
+    const status = document.querySelector('#status');
+
+    playButton.addEventListener('click', async () => {
+      try {
+        await video.play();
+        playButton.textContent = 'Ⅱ Pause video';
+        status.textContent = 'Playing through THREE.VideoTexture inside the A-Frame scene.';
+      } catch (error) {
+        status.textContent = 'Video could not start: ' + error.message;
+      }
+    });
+
+    playButton.addEventListener('click', () => {
+      if (!video.paused) {
+        playButton.onclick = () => {
+          if (video.paused) {
+            video.play();
+            playButton.textContent = 'Ⅱ Pause video';
+          } else {
+            video.pause();
+            playButton.textContent = '▶ Start video';
+          }
+        };
+      }
+    });
+  </script>
+</body>
+</html>
