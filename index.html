@@ -52,18 +52,13 @@
       background: rgba(0,0,0,.75); color: white;
       font-family: Arial, sans-serif; font-size: 14px;
     }
-    /* YouTube playback surface, positioned over Layer 3's projected screen area. */
+    /* Simple embedded player: Layer 3's projected screen rectangle. */
     #youtube-panel {
       position: fixed;
       display: none;
       z-index: 9000;
       overflow: hidden;
       background: #000;
-      /* SVG luminance mask cuts foreground cards out of the iframe surface. */
-      -webkit-mask: url(#youtube-occlusion-mask);
-      mask: url(#youtube-occlusion-mask);
-      -webkit-mask-repeat: no-repeat;
-      mask-repeat: no-repeat;
     }
     #youtube-frame {
       width: 100%;
@@ -99,20 +94,6 @@
   <div id="status">
     Starting AR...
   </div>
-  <svg id="youtube-mask-defs" aria-hidden="true" width="0" height="0"
-       style="position:absolute; width:0; height:0; overflow:hidden">
-    <defs>
-      <mask id="youtube-occlusion-mask"
-            maskUnits="userSpaceOnUse"
-            maskContentUnits="userSpaceOnUse"
-            x="0" y="0" width="1" height="1">
-        <rect id="youtube-mask-base" x="0" y="0" width="1" height="1" fill="black"></rect>
-        <polygon id="youtube-mask-layer3" points="" fill="white"></polygon>
-        <polygon id="youtube-mask-layer4" points="" fill="black"></polygon>
-        <polygon id="youtube-mask-layer5" points="" fill="black"></polygon>
-      </mask>
-    </defs>
-  </svg>
   <div id="youtube-panel" aria-label="YouTube video playing on Layer 3">
     <button id="youtube-close" type="button" aria-label="Close video">×</button>
     <iframe
@@ -433,103 +414,61 @@
       status.innerText = "Marker lost — point camera at marker";
     });
 
-    // Project any panel's four corners into viewport coordinates.
-    function projectPanel(panelId, width, height, canvasRect) {
-      const panel = document.getElementById(panelId);
-      const mesh = panel && panel.getObject3D("mesh");
-      if (!mesh || !scene.camera) return null;
+    // Project Layer 3 into a simple screen-space rectangle.
+    // The YouTube iframe is intentionally an HTML overlay, not a fake WebGL texture.
+    function projectPanel3() {
+      const mesh = videoPanel && videoPanel.getObject3D("mesh");
+      if (!mesh || !scene.camera || !scene.canvas) return null;
 
-      const halfW = width / 2;
-      const halfH = height / 2;
+      const rect = scene.canvas.getBoundingClientRect();
       const corners = [
-        new THREE.Vector3(-halfW, -halfH, 0),
-        new THREE.Vector3( halfW, -halfH, 0),
-        new THREE.Vector3( halfW,  halfH, 0),
-        new THREE.Vector3(-halfW,  halfH, 0)
+        new THREE.Vector3(-1.8, -1.0, 0),
+        new THREE.Vector3( 1.8, -1.0, 0),
+        new THREE.Vector3( 1.8,  1.0, 0),
+        new THREE.Vector3(-1.8,  1.0, 0)
       ];
 
-      return corners.map((corner) => {
+      scene.object3D.updateMatrixWorld(true);
+      scene.camera.updateMatrixWorld(true);
+
+      const projected = corners.map((corner) => {
         mesh.localToWorld(corner);
         corner.project(scene.camera);
         return {
-          x: canvasRect.left + (corner.x + 1) * canvasRect.width / 2,
-          y: canvasRect.top + (1 - corner.y) * canvasRect.height / 2,
+          x: rect.left + (corner.x + 1) * rect.width / 2,
+          y: rect.top + (1 - corner.y) * rect.height / 2,
           z: corner.z
         };
       });
+
+      if (projected.some(p => p.z < -1 || p.z > 1)) return null;
+      const left = Math.max(0, Math.min(...projected.map(p => p.x)));
+      const top = Math.max(0, Math.min(...projected.map(p => p.y)));
+      const right = Math.min(window.innerWidth, Math.max(...projected.map(p => p.x)));
+      const bottom = Math.min(window.innerHeight, Math.max(...projected.map(p => p.y)));
+      if (right - left < 48 || bottom - top < 30) return null;
+      return { left, top, width: right - left, height: bottom - top };
     }
 
-    function polygonPoints(points, left, top) {
-      return points.map(p => (p.x - left).toFixed(1) + "," + (p.y - top).toFixed(1)).join(" ");
-    }
-
-    function setMask(panel3Points, panel4Points, panel5Points, width, height, left, top) {
-      const mask = document.getElementById("youtube-occlusion-mask");
-      mask.setAttribute("x", "0");
-      mask.setAttribute("y", "0");
-      mask.setAttribute("width", String(width));
-      mask.setAttribute("height", String(height));
-
-      const base = document.getElementById("youtube-mask-base");
-      base.setAttribute("width", String(width));
-      base.setAttribute("height", String(height));
-
-      document.getElementById("youtube-mask-layer3")
-        .setAttribute("points", polygonPoints(panel3Points, left, top));
-      document.getElementById("youtube-mask-layer4")
-        .setAttribute("points", polygonPoints(panel4Points, left, top));
-      document.getElementById("youtube-mask-layer5")
-        .setAttribute("points", polygonPoints(panel5Points, left, top));
-    }
-
-    // Track Layer 3 and punch dynamic holes wherever foreground cards 4 and 5 overlap it.
     AFRAME.registerComponent("youtube-panel-tracker", {
       tick: function () {
         if (!youtubeOpen || !markerVisible || !scene.camera) {
           youtubeOverlay.style.display = "none";
           return;
         }
-
         try {
-        scene.object3D.updateMatrixWorld(true);
-        scene.camera.updateMatrixWorld(true);
-        const canvasRect = scene.canvas.getBoundingClientRect();
-
-        const panel3 = projectPanel("panel-3", 3.6, 2.0, canvasRect);
-        const panel4 = projectPanel("panel-4", 5.2, 2.89, canvasRect);
-        const panel5 = projectPanel("panel-5", 3.6, 2.0, canvasRect);
-
-        if (!panel3 || !panel4 || !panel5 ||
-            [...panel3, ...panel4, ...panel5].some(p => p.z < -1 || p.z > 1)) {
-          youtubeOverlay.style.display = "none";
-          return;
-        }
-
-        const xs = panel3.map(p => p.x);
-        const ys = panel3.map(p => p.y);
-        const left = Math.max(0, Math.min(...xs));
-        const top = Math.max(0, Math.min(...ys));
-        const right = Math.min(window.innerWidth, Math.max(...xs));
-        const bottom = Math.min(window.innerHeight, Math.max(...ys));
-        const width = right - left;
-        const height = bottom - top;
-
-        if (width < 48 || height < 30) {
-          youtubeOverlay.style.display = "none";
-          return;
-        }
-
-        youtubeOverlay.style.left = left + "px";
-        youtubeOverlay.style.top = top + "px";
-        youtubeOverlay.style.width = width + "px";
-        youtubeOverlay.style.height = height + "px";
-
-        // White = visible Layer 3 video. Black = transparent cut-outs
-        // that reveal the real A-Frame foreground panels underneath.
-        setMask(panel3, panel4, panel5, width, height, left, top);
-        youtubeOverlay.style.display = "block";
+          const rect = projectPanel3();
+          if (!rect) {
+            youtubeOverlay.style.display = "none";
+            return;
+          }
+          youtubeOverlay.style.left = rect.left + "px";
+          youtubeOverlay.style.top = rect.top + "px";
+          youtubeOverlay.style.width = rect.width + "px";
+          youtubeOverlay.style.height = rect.height + "px";
+          youtubeOverlay.style.display = "block";
         } catch (error) {
-          console.warn("Layer 3 YouTube mask paused:", error);
+          console.warn("Layer 3 player positioning paused:", error);
           youtubeOverlay.style.display = "none";
         }
       }
@@ -537,26 +476,8 @@
 
     scene.addEventListener("loaded", () => {
       scene.setAttribute("youtube-panel-tracker", "");
-
-      const panelOrder = {
-        "panel-1": 1,
-        "panel-2": 2,
-        "panel-3": 3,
-        "panel-4": 4,
-        "panel-5": 5
-      };
-
-      Object.entries(panelOrder).forEach(([id, order]) => {
-        const panel = document.getElementById(id);
-        if (panel && panel.object3D) {
-          panel.object3D.renderOrder = order;
-          panel.object3D.traverse((node) => {
-            if (node.isMesh && node.material) {
-              node.material.depthTest = true;
-              node.material.depthWrite = false;
-              node.material.needsUpdate = true;
-            }
-          });
+      status.innerText = "Camera ready — scan marker";
+    });
         }
       });
 
