@@ -53,13 +53,13 @@
       font-family: Arial, sans-serif; font-size: 14px;
     }
     /* Reactive cyber control + marker-projected video surface. */
-    #video-launch { position:fixed; z-index:8000; left:50%; bottom:max(24px,env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; align-items:center; gap:13px; min-width:206px; justify-content:center; padding:15px 23px; overflow:hidden; border:1px solid rgba(91,224,255,.88); border-radius:8px; color:#e9fbff; background:linear-gradient(112deg,rgba(3,16,30,.98),rgba(4,40,61,.96) 52%,rgba(3,13,27,.98)); box-shadow:0 0 0 1px rgba(0,190,255,.16),0 0 16px rgba(0,190,255,.22),0 10px 32px rgba(0,0,0,.48),inset 0 0 18px rgba(0,174,255,.10); font:800 11px/1 Arial,sans-serif; letter-spacing:2.2px; text-transform:uppercase; cursor:pointer; isolation:isolate; -webkit-tap-highlight-color:transparent; transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,filter .18s ease; animation:cyber-pulse 2.8s ease-in-out infinite; }
+    #video-launch { position:fixed; z-index:8000; left:50%; bottom:max(24px,env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; align-items:center; gap:13px; min-width:184px; justify-content:center; padding:11px 17px; overflow:hidden; border:1px solid rgba(91,224,255,.88); border-radius:8px; color:#e9fbff; background:linear-gradient(112deg,rgba(3,16,30,.98),rgba(4,40,61,.96) 52%,rgba(3,13,27,.98)); box-shadow:0 0 0 1px rgba(0,190,255,.16),0 0 16px rgba(0,190,255,.22),0 10px 32px rgba(0,0,0,.48),inset 0 0 18px rgba(0,174,255,.10); font:800 11px/1 Arial,sans-serif; letter-spacing:2.2px; text-transform:uppercase; cursor:pointer; isolation:isolate; -webkit-tap-highlight-color:transparent; transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,filter .18s ease; animation:cyber-pulse 2.8s ease-in-out infinite; }
     #video-launch::before { content:""; position:absolute; z-index:-1; inset:0; background:linear-gradient(105deg,transparent 18%,rgba(110,235,255,.18) 48%,transparent 72%); transform:translateX(-120%); animation:cyber-scan 3.6s ease-in-out infinite; }
     #video-launch::after { content:""; position:absolute; inset:4px; border:1px solid rgba(102,218,255,.16); border-radius:5px; pointer-events:none; }
     #video-launch:hover { transform:translateX(-50%) translateY(-3px) scale(1.035); border-color:#c3f7ff; filter:brightness(1.18); box-shadow:0 0 0 1px rgba(0,210,255,.28),0 0 28px rgba(0,190,255,.42),0 14px 36px rgba(0,0,0,.5),inset 0 0 22px rgba(0,174,255,.16); }
     #video-launch:active { transform:translateX(-50%) scale(.97); filter:brightness(1.35); }
     #video-launch:focus-visible { outline:2px solid #b7f5ff; outline-offset:5px; }
-    #video-launch .play-mark { display:inline-grid; place-items:center; width:27px; height:27px; border:1px solid rgba(130,235,255,.9); border-radius:50%; color:#9beaff; font-size:11px; letter-spacing:0; text-shadow:0 0 10px #35cfff; box-shadow:0 0 12px rgba(0,190,255,.26),inset 0 0 8px rgba(0,190,255,.14); }
+    #video-launch .play-mark { display:inline-grid; place-items:center; width:23px; height:23px; border:1px solid rgba(130,235,255,.9); border-radius:50%; color:#9beaff; font-size:11px; letter-spacing:0; text-shadow:0 0 10px #35cfff; box-shadow:0 0 12px rgba(0,190,255,.26),inset 0 0 8px rgba(0,190,255,.14); }
     #video-launch .button-copy { display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
     #video-launch .button-copy strong { font:800 11px/1 Arial,sans-serif; letter-spacing:2px; }
     #video-launch .button-copy small { color:#72cce5; font:600 7px/1 Arial,sans-serif; letter-spacing:1.7px; }
@@ -70,7 +70,7 @@
     @keyframes cyber-pulse { 0%,100% { box-shadow:0 0 0 1px rgba(0,190,255,.16),0 0 14px rgba(0,190,255,.18),0 10px 32px rgba(0,0,0,.48),inset 0 0 16px rgba(0,174,255,.08); } 50% { box-shadow:0 0 0 1px rgba(0,220,255,.3),0 0 25px rgba(0,190,255,.38),0 10px 32px rgba(0,0,0,.48),inset 0 0 22px rgba(0,174,255,.15); } }
     @keyframes cyber-scan { 0%,18% { transform:translateX(-120%); } 62%,100% { transform:translateX(120%); } }
     @media (prefers-reduced-motion:reduce) { #video-launch,#video-launch::before { animation:none; transition:none; } }
-    @media (max-width:600px) { #video-launch { bottom:max(20px,env(safe-area-inset-bottom)); min-width:194px; padding:13px 19px; } #youtube-close { width:28px; height:28px; line-height:24px; } }
+    @media (max-width:600px) { #video-launch { bottom:max(20px,env(safe-area-inset-bottom)); min-width:174px; padding:10px 15px; } #youtube-close { width:28px; height:28px; line-height:24px; } }
 
   </style>
 
@@ -412,16 +412,24 @@
       const top = Math.max(0, Math.min(...ys));
       const right = Math.min(window.innerWidth, Math.max(...xs));
       const bottom = Math.min(window.innerHeight, Math.max(...ys));
+      const projectedWidth = right - left;
+      const projectedHeight = bottom - top;
 
-      if (right - left < 24 || bottom - top < 24) {
+      if (projectedWidth < 24 || projectedHeight < 24) {
         videoOverlay.style.display = "none";
         return;
       }
 
-      videoOverlay.style.left = left + "px";
-      videoOverlay.style.top = top + "px";
-      videoOverlay.style.width = (right - left) + "px";
-      videoOverlay.style.height = (bottom - top) + "px";
+      // Keep the YouTube viewport in a true landscape 16:9 rectangle.
+      const frameWidth = Math.min(projectedWidth, projectedHeight * (16 / 9));
+      const frameHeight = frameWidth * (9 / 16);
+      const centerX = (left + right) / 2;
+      const centerY = (top + bottom) / 2;
+
+      videoOverlay.style.left = (centerX - frameWidth / 2) + "px";
+      videoOverlay.style.top = (centerY - frameHeight / 2) + "px";
+      videoOverlay.style.width = frameWidth + "px";
+      videoOverlay.style.height = frameHeight + "px";
       videoOverlay.style.display = "block";
     }
 
