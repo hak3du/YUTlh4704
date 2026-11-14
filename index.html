@@ -359,7 +359,8 @@
       youtubeOpen = true;
       // Load the player directly from the user gesture; muted autoplay is browser-friendlier.
       youtubeFrame.src = YOUTUBE_EMBED;
-      youtubeOverlay.style.display = "block";
+      // The tracker reveals the frame once it has valid Layer 3 screen coordinates.
+      youtubeOverlay.style.display = "none";
       status.innerText = "Video opened — use YouTube controls to unmute or pause";
     }
 
