@@ -59,6 +59,11 @@
       z-index: 9000;
       overflow: hidden;
       background: #000;
+      /* SVG luminance mask cuts foreground cards out of the iframe surface. */
+      -webkit-mask: url(#youtube-occlusion-mask);
+      mask: url(#youtube-occlusion-mask);
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
     }
     #youtube-frame {
       width: 100%;
@@ -94,6 +99,20 @@
   <div id="status">
     Starting AR...
   </div>
+  <svg id="youtube-mask-defs" aria-hidden="true" width="0" height="0"
+       style="position:absolute; width:0; height:0; overflow:hidden">
+    <defs>
+      <mask id="youtube-occlusion-mask"
+            maskUnits="userSpaceOnUse"
+            maskContentUnits="userSpaceOnUse"
+            x="0" y="0" width="1" height="1">
+        <rect id="youtube-mask-base" x="0" y="0" width="1" height="1" fill="black"></rect>
+        <polygon id="youtube-mask-layer3" points="" fill="white"></polygon>
+        <polygon id="youtube-mask-layer4" points="" fill="black"></polygon>
+        <polygon id="youtube-mask-layer5" points="" fill="black"></polygon>
+      </mask>
+    </defs>
+  </svg>
   <div id="youtube-panel" aria-label="YouTube video playing on Layer 3">
     <button id="youtube-close" type="button" aria-label="Close video">×</button>
     <iframe
@@ -414,9 +433,56 @@
       status.innerText = "Marker lost — point camera at marker";
     });
 
-    // Keep the embedded YouTube player aligned to Layer 3's projected bounds.
-    // The iframe is an HTML surface, so browsers composite it above WebGL;
-    // it cannot participate in the scene's true 3D depth test.
+    // Project any panel's four corners into viewport coordinates.
+    function projectPanel(panelId, width, height) {
+      const panel = document.getElementById(panelId);
+      const mesh = panel && panel.getObject3D("mesh");
+      if (!mesh || !scene.camera) return null;
+
+      const halfW = width / 2;
+      const halfH = height / 2;
+      const corners = [
+        new THREE.Vector3(-halfW, -halfH, 0),
+        new THREE.Vector3( halfW, -halfH, 0),
+        new THREE.Vector3( halfW,  halfH, 0),
+        new THREE.Vector3(-halfW,  halfH, 0)
+      ];
+
+      return corners.map((corner) => {
+        mesh.localToWorld(corner);
+        corner.project(scene.camera);
+        return {
+          x: canvasRect.left + (corner.x + 1) * canvasRect.width / 2,
+          y: canvasRect.top + (1 - corner.y) * canvasRect.height / 2,
+          z: corner.z
+        };
+      });
+    }
+
+    function polygonPoints(points, left, top) {
+      return points.map(p => (p.x - left).toFixed(1) + "," + (p.y - top).toFixed(1)).join(" ");
+    }
+
+    function setMask(panel3Points, panel4Points, panel5Points, width, height, left, top) {
+      const mask = document.getElementById("youtube-occlusion-mask");
+      mask.setAttribute("x", "0");
+      mask.setAttribute("y", "0");
+      mask.setAttribute("width", String(width));
+      mask.setAttribute("height", String(height));
+
+      const base = document.getElementById("youtube-mask-base");
+      base.setAttribute("width", String(width));
+      base.setAttribute("height", String(height));
+
+      document.getElementById("youtube-mask-layer3")
+        .setAttribute("points", polygonPoints(panel3Points, left, top));
+      document.getElementById("youtube-mask-layer4")
+        .setAttribute("points", polygonPoints(panel4Points, left, top));
+      document.getElementById("youtube-mask-layer5")
+        .setAttribute("points", polygonPoints(panel5Points, left, top));
+    }
+
+    // Track Layer 3 and punch dynamic holes wherever foreground cards 4 and 5 overlap it.
     AFRAME.registerComponent("youtube-panel-tracker", {
       tick: function () {
         if (!youtubeOpen || !markerVisible || !scene.camera) {
@@ -424,39 +490,22 @@
           return;
         }
 
-        const mesh = videoPanel.getObject3D("mesh");
-        if (!mesh) return;
-
         scene.object3D.updateMatrixWorld(true);
         scene.camera.updateMatrixWorld(true);
-
-        const halfW = 1.8;
-        const halfH = 1.0;
-        const corners = [
-          new THREE.Vector3(-halfW, -halfH, 0),
-          new THREE.Vector3( halfW, -halfH, 0),
-          new THREE.Vector3( halfW,  halfH, 0),
-          new THREE.Vector3(-halfW,  halfH, 0)
-        ];
-
         const canvasRect = scene.canvas.getBoundingClientRect();
-        const points = corners.map((corner) => {
-          mesh.localToWorld(corner);
-          corner.project(scene.camera);
-          return {
-            x: canvasRect.left + (corner.x + 1) * canvasRect.width / 2,
-            y: canvasRect.top + (1 - corner.y) * canvasRect.height / 2,
-            z: corner.z
-          };
-        });
 
-        if (points.some(p => p.z < -1 || p.z > 1)) {
+        const panel3 = projectPanel("panel-3", 3.6, 2.0);
+        const panel4 = projectPanel("panel-4", 5.2, 2.89);
+        const panel5 = projectPanel("panel-5", 3.6, 2.0);
+
+        if (!panel3 || !panel4 || !panel5 ||
+            [...panel3, ...panel4, ...panel5].some(p => p.z < -1 || p.z > 1)) {
           youtubeOverlay.style.display = "none";
           return;
         }
 
-        const xs = points.map(p => p.x);
-        const ys = points.map(p => p.y);
+        const xs = panel3.map(p => p.x);
+        const ys = panel3.map(p => p.y);
         const left = Math.max(0, Math.min(...xs));
         const top = Math.max(0, Math.min(...ys));
         const right = Math.min(window.innerWidth, Math.max(...xs));
@@ -473,11 +522,15 @@
         youtubeOverlay.style.top = top + "px";
         youtubeOverlay.style.width = width + "px";
         youtubeOverlay.style.height = height + "px";
+
+        // White = visible Layer 3 video. Black = transparent cut-outs
+        // that reveal the real A-Frame foreground panels underneath.
+        setMask(panel3, panel4, panel5, width, height, left, top);
         youtubeOverlay.style.display = "block";
       }
     });
 
-    scene.addEventListener("loaded", () => {
+    scene.addEventListener("loaded", () => {    scene.addEventListener("loaded", () => {
       scene.setAttribute("youtube-panel-tracker", "");
 
       const panelOrder = {
