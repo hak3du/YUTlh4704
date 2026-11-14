@@ -52,13 +52,25 @@
       background: rgba(0,0,0,.75); color: white;
       font-family: Arial, sans-serif; font-size: 14px;
     }
-    /* Marker-projected Layer 3 YouTube overlay. */
-    #video-launch { position:fixed; z-index:8000; left:50%; bottom:max(22px,env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; align-items:center; gap:10px; border:1px solid rgba(145,225,255,.68); border-radius:999px; padding:13px 21px; color:#eafaff; background:linear-gradient(135deg,rgba(8,28,44,.96),rgba(5,13,25,.96)); box-shadow:0 0 0 1px rgba(80,190,255,.12),0 8px 30px rgba(0,0,0,.38),0 0 22px rgba(0,170,255,.18); font:700 11px/1 Arial,sans-serif; letter-spacing:1.8px; text-transform:uppercase; cursor:pointer; -webkit-tap-highlight-color:transparent; }
-    #video-launch .play-mark { display:inline-grid; place-items:center; width:23px; height:23px; border:1px solid rgba(145,225,255,.72); border-radius:50%; color:#9beaff; font-size:10px; letter-spacing:0; }
-    #video-overlay { position:fixed; z-index:9000; display:none; overflow:hidden; background:#000; border:1px solid rgba(155,220,255,.82); box-shadow:0 0 18px rgba(0,170,255,.22); box-sizing:border-box; }
+    /* Reactive cyber control + marker-projected video surface. */
+    #video-launch { position:fixed; z-index:8000; left:50%; bottom:max(24px,env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; align-items:center; gap:13px; min-width:206px; justify-content:center; padding:15px 23px; overflow:hidden; border:1px solid rgba(91,224,255,.88); border-radius:8px; color:#e9fbff; background:linear-gradient(112deg,rgba(3,16,30,.98),rgba(4,40,61,.96) 52%,rgba(3,13,27,.98)); box-shadow:0 0 0 1px rgba(0,190,255,.16),0 0 16px rgba(0,190,255,.22),0 10px 32px rgba(0,0,0,.48),inset 0 0 18px rgba(0,174,255,.10); font:800 11px/1 Arial,sans-serif; letter-spacing:2.2px; text-transform:uppercase; cursor:pointer; isolation:isolate; -webkit-tap-highlight-color:transparent; transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,filter .18s ease; animation:cyber-pulse 2.8s ease-in-out infinite; }
+    #video-launch::before { content:""; position:absolute; z-index:-1; inset:0; background:linear-gradient(105deg,transparent 18%,rgba(110,235,255,.18) 48%,transparent 72%); transform:translateX(-120%); animation:cyber-scan 3.6s ease-in-out infinite; }
+    #video-launch::after { content:""; position:absolute; inset:4px; border:1px solid rgba(102,218,255,.16); border-radius:5px; pointer-events:none; }
+    #video-launch:hover { transform:translateX(-50%) translateY(-3px) scale(1.035); border-color:#c3f7ff; filter:brightness(1.18); box-shadow:0 0 0 1px rgba(0,210,255,.28),0 0 28px rgba(0,190,255,.42),0 14px 36px rgba(0,0,0,.5),inset 0 0 22px rgba(0,174,255,.16); }
+    #video-launch:active { transform:translateX(-50%) scale(.97); filter:brightness(1.35); }
+    #video-launch:focus-visible { outline:2px solid #b7f5ff; outline-offset:5px; }
+    #video-launch .play-mark { display:inline-grid; place-items:center; width:27px; height:27px; border:1px solid rgba(130,235,255,.9); border-radius:50%; color:#9beaff; font-size:11px; letter-spacing:0; text-shadow:0 0 10px #35cfff; box-shadow:0 0 12px rgba(0,190,255,.26),inset 0 0 8px rgba(0,190,255,.14); }
+    #video-launch .button-copy { display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
+    #video-launch .button-copy strong { font:800 11px/1 Arial,sans-serif; letter-spacing:2px; }
+    #video-launch .button-copy small { color:#72cce5; font:600 7px/1 Arial,sans-serif; letter-spacing:1.7px; }
+    #video-overlay { position:fixed; z-index:9000; display:none; overflow:hidden; background:#000; border:1px solid rgba(155,220,255,.9); box-shadow:0 0 0 1px rgba(0,190,255,.18),0 0 26px rgba(0,170,255,.34),0 0 70px rgba(0,80,150,.2); box-sizing:border-box; }
     #youtube-frame { position:absolute; inset:0; width:100%; height:100%; border:0; display:block; background:#000; }
-    #youtube-close { position:absolute; z-index:2; top:5px; right:5px; width:27px; height:27px; padding:0; border:1px solid rgba(210,240,255,.65); border-radius:5px; color:white; background:rgba(0,0,0,.72); font:19px/23px Arial,sans-serif; cursor:pointer; }
-    @media (max-width:600px) { #video-launch { bottom:max(18px,env(safe-area-inset-bottom)); padding:12px 18px; font-size:10px; } #youtube-close { width:24px; height:24px; line-height:20px; } }
+    #youtube-close { position:absolute; z-index:2; top:7px; right:7px; width:31px; height:31px; padding:0; border:1px solid rgba(210,240,255,.78); border-radius:6px; color:white; background:rgba(0,8,18,.82); font:20px/27px Arial,sans-serif; cursor:pointer; box-shadow:0 0 12px rgba(0,190,255,.3); }
+    #youtube-close:hover { background:rgba(0,95,130,.94); box-shadow:0 0 18px rgba(0,190,255,.55); }
+    @keyframes cyber-pulse { 0%,100% { box-shadow:0 0 0 1px rgba(0,190,255,.16),0 0 14px rgba(0,190,255,.18),0 10px 32px rgba(0,0,0,.48),inset 0 0 16px rgba(0,174,255,.08); } 50% { box-shadow:0 0 0 1px rgba(0,220,255,.3),0 0 25px rgba(0,190,255,.38),0 10px 32px rgba(0,0,0,.48),inset 0 0 22px rgba(0,174,255,.15); } }
+    @keyframes cyber-scan { 0%,18% { transform:translateX(-120%); } 62%,100% { transform:translateX(120%); } }
+    @media (prefers-reduced-motion:reduce) { #video-launch,#video-launch::before { animation:none; transition:none; } }
+    @media (max-width:600px) { #video-launch { bottom:max(20px,env(safe-area-inset-bottom)); min-width:194px; padding:13px 19px; } #youtube-close { width:28px; height:28px; line-height:24px; } }
 
   </style>
 
@@ -75,7 +87,7 @@
   <div id="status">
     Starting AR...
   </div>
-  <button id="video-launch" type="button" aria-label="Play portfolio video"><span class="play-mark">▶</span><span>Play Layer 03</span></button>
+  <button id="video-launch" type="button" aria-label="Play Layer 03 video"><span class="play-mark">▶</span><span class="button-copy"><strong>INITIATE VIDEO</strong><small>SECURE MEDIA LINK // 03</small></span></button>
   <div id="video-overlay" aria-label="Layer 3 video">
     <iframe id="youtube-frame" title="Layer 3 video" src="about:blank"
       allow="autoplay; encrypted-media; picture-in-picture; web-share"
@@ -139,7 +151,7 @@
 
       <img
         id="pic3"
-        src="https://i.ytimg.com/vi/qGlJVZP9Ie8/hqdefault.jpg"
+        src="https://images.pexels.com/photos/17489163/pexels-photo-17489163.jpeg?auto=compress&cs=tinysrgb&w=1600"
         crossorigin="anonymous"
       >
 
@@ -253,19 +265,19 @@
 
 
         <!-- =====================================
-             PORTFOLIO 3 — VIDEO PANEL
-             YouTube is projected over this marker plane.
+             PORTFOLIO 3 — PEXELS IMAGE / VIDEO PLANE
+             Static image remains visible until playback starts.
              ===================================== -->
         <a-plane
           id="panel-3"
           position="0 0 -0.60"
-          width="3.6"
-          height="2"
+          width="5.0"
+          height="2.8125"
           material="
             src: #pic3;
             shader: flat;
             transparent: true;
-            opacity: 0.96;
+            opacity: 0.8;
             depthWrite: false;
             side: double;
           "
@@ -352,7 +364,7 @@
     const panel3 = document.querySelector("#panel-3");
     const stackPanels = ["#panel-1", "#panel-2", "#panel-4", "#panel-5"]
       .map(selector => document.querySelector(selector));
-    const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1";
+    const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
     let markerVisible = false;
     let youtubeOpen = false;
     let animationFrame = 0;
@@ -370,8 +382,8 @@
 
       panel3.object3D.updateWorldMatrix(true, false);
       scene.camera.updateMatrixWorld(true);
-      const halfW = 1.8;
-      const halfH = 1.0;
+      const halfW = 2.5;
+      const halfH = 1.40625;
       const corners = [
         new THREE.Vector3(-halfW, -halfH, 0),
         new THREE.Vector3( halfW, -halfH, 0),
