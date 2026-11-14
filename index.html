@@ -292,7 +292,6 @@
          ========================================= -->
 
     <a-entity id="ar-camera" camera></a-entity>
-    </a-entity>
 
 
   </a-scene>
@@ -314,6 +313,29 @@
     });
 
     document.querySelector("a-scene").addEventListener("loaded", () => {
+      // Explicit transparent-panel ordering: back to front.
+      // Larger renderOrder values are drawn later.
+      const panelOrder = {
+        "panel-1": 1,
+        "panel-2": 2,
+        "panel-4": 3,
+        "panel-5": 4
+      };
+
+      Object.entries(panelOrder).forEach(([id, order]) => {
+        const panel = document.getElementById(id);
+        if (panel && panel.object3D) {
+          panel.object3D.renderOrder = order;
+          panel.object3D.traverse((node) => {
+            if (node.isMesh && node.material) {
+              node.material.depthTest = true;
+              node.material.depthWrite = false;
+              node.material.needsUpdate = true;
+            }
+          });
+        }
+      });
+
       status.innerText = "Camera ready — scan marker";
     });
   </script>
