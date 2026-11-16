@@ -133,8 +133,6 @@
          ========================================= -->
 
     <a-assets>
-              <a-asset-item id="welcome-font" src="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"></a-asset-item>
-
       <img
         id="pic1"
         src="./p1.png"
@@ -252,36 +250,20 @@
         ></a-plane>
 
 
-        <!-- LAYER 3 — P1 artwork with the 3D typewriter intro retained in front. -->
+        <!-- LAYER 3 — P1 artwork. -->
         <a-plane id="panel-3" position="1.025 0 -0.50" width="4.1" height="2.3"
           material="src: #pic1; shader: flat; transparent: true; opacity: 0.96; depthWrite: false; side: double"></a-plane>
 
 
         <!-- LAYER 4 — Cpng artwork; video overlay projects over this marker-locked plane. -->
-        <a-plane id="panel-4" position="0 0 0.2771" width="4.1" height="2.3"
+        <a-plane id="panel-4" position="0 0 0.3051" width="4.1" height="2.3"
           material="src: #picLayer4; shader: flat; transparent: true; opacity: 0.96; depthWrite: false; side: double"></a-plane>
-
-        <!-- =====================================
-             LAYER 3 — MARKER-LOCKED EXTRUDED 3D WELCOME
-             Each line is real TextGeometry with bevelled depth.
-             ===================================== -->
-        <a-entity id="layer3-welcome" position="0 0.62 -0.35">
-          <a-entity id="welcome-line-1" position="0 0.12 0"
-            text-geometry="value: ; font: #welcome-font; size: 0.075; height: 0.014; bevelEnabled: true; bevelThickness: 0.003; bevelSize: 0.002; curveSegments: 4"
-            material="color: #b9f5ff; emissive: #1686a8; emissiveIntensity: 0.45; metalness: 0.55; roughness: 0.28"></a-entity>
-          <a-entity id="welcome-line-2" position="0 -0.10 0"
-            text-geometry="value: ; font: #welcome-font; size: 0.085; height: 0.016; bevelEnabled: true; bevelThickness: 0.003; bevelSize: 0.002; curveSegments: 4"
-            material="color: #08b9e8; emissive: #087da8; emissiveIntensity: 0.5; metalness: 0.65; roughness: 0.24"></a-entity>
-          <a-entity id="welcome-line-3" position="0 -0.34 0"
-            text-geometry="value: ; font: #welcome-font; size: 0.065; height: 0.012; bevelEnabled: true; bevelThickness: 0.002; bevelSize: 0.0015; curveSegments: 4"
-            material="color: #75dff5; emissive: #1686a8; emissiveIntensity: 0.42; metalness: 0.55; roughness: 0.3"></a-entity>
-        </a-entity>
 
 
         <!-- LAYER 5 — uploaded artwork, moved one depth level forward. -->
         <a-plane
           id="panel-5"
-          position="0 0 0.95"
+          position="0 0.115 0.95"
           width="4.1"
           height="2.3"
           material="src: #picLayer5; shader: flat; transparent: true; opacity: 0.96; depthWrite: false; side: double">
@@ -320,38 +302,6 @@
     const youtubeClose = document.querySelector("#youtube-close");
     const videoLaunch = document.querySelector("#video-launch");
     const panel3 = document.querySelector("#panel-4");
-    const layer3Welcome = document.querySelector("#layer3-welcome");
-    const welcomeLines = [
-      document.querySelector("#welcome-line-1"),
-      document.querySelector("#welcome-line-2"),
-      document.querySelector("#welcome-line-3")
-    ];
-
-    // Marker-locked typewriter introduction: reveal each statement, pause, then continue.
-    async function runWelcomeTypewriter() {
-      const messages = [
-        "WELCOME TO THE FUTURE OF TECH",
-        "MY NAME IS TONY",
-        "LET ME TAKE YOU ON A JOURNEY INTO CYBERSECURITY"
-      ];
-      const typeLine = (element, message) => new Promise(resolve => {
-        let index = 0;
-        element.setAttribute("text-geometry", "value", "");
-        const timer = setInterval(() => {
-          index += 1;
-          element.setAttribute("text-geometry", "value", message.slice(0, index));
-          if (index >= message.length) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 58);
-      });
-
-      for (let i = 0; i < messages.length; i += 1) {
-        await typeLine(welcomeLines[i], messages[i]);
-        await new Promise(resolve => setTimeout(resolve, i === messages.length - 1 ? 0 : 1250));
-      }
-    }
     const stackPanels = ["#panel-1", "#panel-2", "#panel-3", "#panel-4", "#panel-5"]
       .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
@@ -362,7 +312,6 @@
     function setArtworkVisible(visible) {
       stackPanels.forEach(panel => panel.setAttribute("visible", visible));
       panel3.setAttribute("visible", !youtubeOpen);
-      layer3Welcome.setAttribute("visible", visible && !youtubeOpen);
     }
 
     function projectVideoPanel() {
@@ -500,7 +449,6 @@
 
     scene.addEventListener("loaded", function() {
       sceneReady = true;
-      runWelcomeTypewriter();
       status.innerText = "Camera ready — scan marker";
       finishLoaderWhenReady();
     });
