@@ -225,7 +225,7 @@
         <!-- LAYER 1 — NEW OPERATIONS-CENTRE MASTER BACKGROUND -->
         <a-plane
           id="panel-1"
-          position="0 0 -1.55"
+          position="0 0 -3.50"
           width="8.2"
           height="4.81"
           material="
@@ -241,7 +241,7 @@
         <!-- LAYER 2 — PREVIOUS BACKGROUND, MOVED ONE DEPTH LEVEL FORWARD -->
         <a-plane
           id="panel-2"
-          position="-2.05 2.558 -0.85"
+          position="-2.05 2.558 -2.50"
           width="8.2"
           height="4.56"
           material="
@@ -262,7 +262,7 @@
 
         <a-plane
           id="panel-3"
-          position="0 0 -0.65"
+          position="0 0 -1.50"
           width="4.1"
           height="2.3"
           material="
@@ -280,14 +280,14 @@
 
 
         <!-- LAYER 3 VIDEO ANCHOR — transparent geometry retained for video projection. -->
-        <a-plane id="panel-4" position="0 0 -0.25" width="1.36" height="0.765"
+        <a-plane id="panel-4" position="0 0 -0.75" width="1.36" height="0.765"
           material="shader: flat; transparent: true; opacity: 0; depthWrite: false; side: double"></a-plane>
 
         <!-- =====================================
              LAYER 3 — MARKER-LOCKED EXTRUDED 3D WELCOME
              Each line is real TextGeometry with bevelled depth.
              ===================================== -->
-        <a-entity id="layer3-welcome" position="0 0.62 -0.175">
+        <a-entity id="layer3-welcome" position="0 0.62 -0.35">
           <a-entity id="welcome-line-1" position="0 0.12 0"
             text-geometry="value: ; font: #welcome-font; size: 0.075; height: 0.014; bevelEnabled: true; bevelThickness: 0.003; bevelSize: 0.002; curveSegments: 4"
             material="color: #b9f5ff; emissive: #1686a8; emissiveIntensity: 0.45; metalness: 0.55; roughness: 0.28"></a-entity>
