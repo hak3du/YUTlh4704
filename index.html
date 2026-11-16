@@ -133,8 +133,7 @@
          ========================================= -->
 
     <a-assets>
-          <a-asset-item id="porsche-panamera" src="./porsche_panamera/scene.gltf"></a-asset-item>
-      <a-asset-item id="welcome-font" src="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"></a-asset-item>
+              <a-asset-item id="welcome-font" src="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"></a-asset-item>
 
       <img
         id="pic1"
@@ -281,18 +280,7 @@
         <a-entity id="panel-4" visible="true"></a-entity>
 
         <!-- LAYER 5 — THE PORSCHE PANAMERA IS THE SINGLE FOREGROUND HERO OBJECT. -->
-        <a-entity id="panel-5" position="-0.55 -0.08 -0.20" rotation="0 -18 0" scale="0.54 0.54 0.54">
-          <a-cylinder radius="2.5" height="0.035" position="0 -0.30 0"
-            material="color: #061521; metalness: 0.7; roughness: 0.32"></a-cylinder>
-          <a-torus radius="2.32" radius-tubular="0.012" position="0 -0.275 0"
-            material="color: #08b9e8; emissive: #087da8; emissiveIntensity: 0.85"></a-torus>
-          <a-entity id="porsche-panamera-model"
-            gltf-model="#porsche-panamera"
-            position="0 0 0"
-            rotation="0 0 0"
-            scale="1 1 1">
-          </a-entity>
-        </a-entity>
+
 
       </a-entity>
 
@@ -356,7 +344,7 @@
         await new Promise(resolve => setTimeout(resolve, i === messages.length - 1 ? 0 : 1250));
       }
     }
-    const stackPanels = ["#panel-1", "#panel-2", "#panel-5"]
+    const stackPanels = ["#panel-1", "#panel-2"]
       .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
     let markerVisible = false;
