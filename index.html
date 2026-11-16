@@ -431,6 +431,7 @@
       play: function () {
         if (!this.ready || this.playing) return;
         this.playing = true;
+        this.playStartedAt = performance.now();
         this.started = true;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.index = 0;
@@ -468,7 +469,8 @@
         } else {
           this.playing = false;
           if (this.data.repeat) {
-            this.timer = setTimeout(() => this.play(), Math.max(1000, this.data.interval));
+            const elapsed = performance.now() - this.playStartedAt;
+            this.timer = setTimeout(() => this.play(), Math.max(0, this.data.interval - elapsed));
           }
         }
       },
