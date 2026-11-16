@@ -138,25 +138,26 @@
       >
 
       <img
-        id="pic2"
-        src="./p2.png"
+        id="pic3"
+        src="https://images.pexels.com/photos/17489163/pexels-photo-17489163.jpeg"
         crossorigin="anonymous"
       >
-<img
+
+      <img
         id="pic4"
-        src="./portfolio4.png"
+        src="https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg"
         crossorigin="anonymous"
       >
 
       <img
         id="pic5"
-        src="./eh.png"
+        src="https://images.pexels.com/photos/5380642/pexels-photo-5380642.jpeg"
         crossorigin="anonymous"
       >
 
       <img
-        id="pic3"
-        src="https://images.pexels.com/photos/17489163/pexels-photo-17489163.jpeg"
+        id="picBack"
+        src="./eh.png"
         crossorigin="anonymous"
       >
 
@@ -234,7 +235,7 @@
           height="4.56"
 
           material="
-            src: #pic5;
+            src: #picBack;
             shader: flat;
             transparent: true;
             opacity: 1.0;
@@ -245,12 +246,12 @@
 
 
         <!-- =====================================
-             PORTFOLIO 1.5 — P1 IMAGE
+             PORTFOLIO 2 — P1 IMAGE
              Immediately in front of the animated background.
              ===================================== -->
 
         <a-plane
-          id="panel-1a"
+          id="panel-2"
           position="0 0 -1.00"
           width="4.1"
           height="2.3"
@@ -271,23 +272,7 @@
 
         <a-plane
 
-          id="panel-2"
-
-          position="-2.35 0 -0.80"
-
-          width="2.46"
-
-          height="1.37"
-
-          material="
-            src: #pic2;
-            shader: flat;
-            transparent: true;
-            opacity: 0.96;
-            depthWrite: false;
-          "
-
-        ></a-plane>
+          
 
 
         <!-- =====================================
@@ -303,7 +288,7 @@
             src: #pic3;
             shader: flat;
             transparent: true;
-            opacity: 0.98;
+            opacity: 0.82;
             depthWrite: false;
             side: double;
           "
@@ -352,7 +337,7 @@
             src: #pic4;
             shader: flat;
             transparent: true;
-            opacity: 0.5;
+            opacity: 0.58;
             depthWrite: false;
           "
 
@@ -365,6 +350,25 @@
 
 
 
+
+        <!-- =====================================
+             PORTFOLIO 5 — PEXELS IMAGE
+             Deep foreground layer with low opacity.
+             ===================================== -->
+        <a-plane
+          id="panel-5"
+          position="0 0 -0.20"
+          width="3.8"
+          height="2.14"
+          material="
+            src: #pic5;
+            shader: flat;
+            transparent: true;
+            opacity: 0.32;
+            depthWrite: false;
+            side: double;
+          "
+        ></a-plane>
 
       </a-entity>
 
@@ -397,7 +401,7 @@
     const videoLaunch = document.querySelector("#video-launch");
     const panel3 = document.querySelector("#panel-3");
     const layer3Welcome = document.querySelector("#layer3-welcome");
-    const stackPanels = ["#panel-1", "#panel-1a", "#panel-2", "#panel-4"]
+    const stackPanels = ["#panel-1", "#panel-2", "#panel-4", "#panel-5"]
       .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
     let markerVisible = false;
