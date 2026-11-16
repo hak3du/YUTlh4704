@@ -46,6 +46,10 @@
 
     }
 
+    a-scene { visibility: hidden; }
+    #scene-loader { position: fixed; inset: 0; z-index: 20000; display: grid; place-items: center; background: #020711; transition: opacity .45s ease; }
+    #scene-loader img { display: block; max-width: min(92vw, 900px); max-height: 88vh; object-fit: contain; }
+    #scene-loader.is-done { opacity: 0; pointer-events: none; }
     #status {
       position: fixed; top: 15px; left: 15px; z-index: 10000;
       padding: 10px 14px; border-radius: 8px;
@@ -84,6 +88,7 @@
        DEBUG STATUS
        ========================================= -->
 
+  <div id="scene-loader" aria-label="Loading AR experience"><img src="./Cyberpunk Hacker Access Granted Animation.gif" alt="Cyberpunk access granted loading animation"></div>
   <div id="status">
     Starting AR...
   </div>
@@ -228,7 +233,7 @@
 
           id="panel-1"
 
-          controlled-gif="src: ./Cyberpunk Hacker Access Granted Animation.gif; start: scene; repeat: false"
+          animated-gif-texture
 
           position="0 0 -1.20"
 
@@ -366,6 +371,16 @@
        JAVASCRIPT
        ========================================= -->
   <script>
+    // Keep the original background GIF animated as the persistent first layer.
+    AFRAME.registerComponent("animated-gif-texture", {
+      tick: function () {
+        const mesh = this.el.getObject3D("mesh");
+        if (!mesh) return;
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        materials.forEach(material => { if (material && material.map) material.map.needsUpdate = true; });
+      }
+    });
+
     // Decode GIF frames into controllable WebGL textures so playback can be one-shot
     // or replay on a fixed interval instead of inheriting the GIF's embedded loop.
     AFRAME.registerComponent("controlled-gif", {
@@ -608,8 +623,37 @@
       status.innerText = "Marker lost — point camera at marker";
     });
 
+    let sceneReady = false;
+    let loaderFinished = false;
+    function finishLoaderWhenReady() {
+      if (!sceneReady || !loaderFinished) return;
+      const loader = document.querySelector("#scene-loader");
+      loader.classList.add("is-done");
+      scene.style.visibility = "visible";
+      setTimeout(() => loader.remove(), 500);
+    }
+
+    // Show the Cyberpunk GIF as a one-pass intro, then reveal the AR scene.
+    async function runIntroLoader() {
+      try {
+        const response = await fetch("./Cyberpunk Hacker Access Granted Animation.gif");
+        if (!response.ok) throw new Error("Intro GIF could not be loaded");
+        const { parseGIF, decompressFrames } = await import("https://esm.sh/gifuct-js@2.1.2");
+        const parsed = parseGIF(await response.arrayBuffer());
+        const frames = decompressFrames(parsed, false);
+        const duration = frames.reduce((total, frame) => total + Math.max(20, frame.delay || 100), 0);
+        setTimeout(() => { loaderFinished = true; finishLoaderWhenReady(); }, duration);
+      } catch (error) {
+        console.warn("Intro loader fallback:", error);
+        setTimeout(() => { loaderFinished = true; finishLoaderWhenReady(); }, 3500);
+      }
+    }
+    runIntroLoader();
+
     scene.addEventListener("loaded", function() {
+      sceneReady = true;
       status.innerText = "Camera ready — scan marker";
+      finishLoaderWhenReady();
     });
 
     window.addEventListener("resize", function() {
