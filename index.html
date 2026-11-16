@@ -19,6 +19,9 @@
 
   <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
 
+  <!-- Geometry-based lettering: real extruded 3D text meshes. -->
+  <script src="https://unpkg.com/aframe-text-geometry-component@0.5.2/dist/aframe-text-geometry-component.min.js"></script>
+
 
   <!-- =========================================
        AR.JS
@@ -130,6 +133,7 @@
          ========================================= -->
 
     <a-assets>
+      <a-asset-item id="welcome-font" src="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"></a-asset-item>
 
       <img
         id="pic1"
@@ -289,17 +293,19 @@
         ></a-plane>
 
         <!-- =====================================
-             LAYER 3 — MARKER-LOCKED 3D WELCOME
-             Text lives in the same AR plane as the artwork.
-             Offset copies create visible depth/extrusion.
+             LAYER 3 — MARKER-LOCKED EXTRUDED 3D WELCOME
+             Each line is real TextGeometry with bevelled depth.
              ===================================== -->
         <a-entity id="layer3-welcome" position="0 0.62 -0.525">
           <a-entity id="welcome-line-1" position="0 0.12 0"
-            text="value: ; align: center; anchor: center; width: 2.8; color: #b9f5ff; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-entity>
+            text-geometry="value: ; font: #welcome-font; size: 0.075; height: 0.014; bevelEnabled: true; bevelThickness: 0.003; bevelSize: 0.002; curveSegments: 4"
+            material="color: #b9f5ff; emissive: #1686a8; emissiveIntensity: 0.45; metalness: 0.55; roughness: 0.28"></a-entity>
           <a-entity id="welcome-line-2" position="0 -0.10 0"
-            text="value: ; align: center; anchor: center; width: 2.55; color: #08b9e8; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-entity>
+            text-geometry="value: ; font: #welcome-font; size: 0.085; height: 0.016; bevelEnabled: true; bevelThickness: 0.003; bevelSize: 0.002; curveSegments: 4"
+            material="color: #08b9e8; emissive: #087da8; emissiveIntensity: 0.5; metalness: 0.65; roughness: 0.24"></a-entity>
           <a-entity id="welcome-line-3" position="0 -0.34 0"
-            text="value: ; align: center; anchor: center; width: 2.8; color: #75dff5; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-entity>
+            text-geometry="value: ; font: #welcome-font; size: 0.065; height: 0.012; bevelEnabled: true; bevelThickness: 0.002; bevelSize: 0.0015; curveSegments: 4"
+            material="color: #75dff5; emissive: #1686a8; emissiveIntensity: 0.42; metalness: 0.55; roughness: 0.3"></a-entity>
         </a-entity>
 
 
@@ -400,10 +406,10 @@
       ];
       const typeLine = (element, message) => new Promise(resolve => {
         let index = 0;
-        element.setAttribute("text", "value", "");
+        element.setAttribute("text-geometry", "value", "");
         const timer = setInterval(() => {
           index += 1;
-          element.setAttribute("text", "value", message.slice(0, index));
+          element.setAttribute("text-geometry", "value", message.slice(0, index));
           if (index >= message.length) {
             clearInterval(timer);
             resolve();
