@@ -309,6 +309,30 @@
           "
         ></a-plane>
 
+        <!-- =====================================
+             LAYER 3 — MARKER-LOCKED 3D WELCOME
+             Text lives in the same AR plane as the artwork.
+             Offset copies create visible depth/extrusion.
+             ===================================== -->
+        <a-entity id="layer3-welcome" position="0 0.62 -0.525">
+          <a-entity
+            position="0 0 -0.035"
+            text="value: WELCOME; align: center; anchor: center; width: 2.05; color: #087b9c; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+          ></a-entity>
+          <a-entity
+            position="0 0 -0.022"
+            text="value: WELCOME; align: center; anchor: center; width: 2.05; color: #08b9e8; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+          ></a-entity>
+          <a-entity
+            position="0 0 -0.009"
+            text="value: WELCOME; align: center; anchor: center; width: 2.05; color: #b9f5ff; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+          ></a-entity>
+          <a-entity
+            position="0 -0.19 0"
+            text="value: ENTER MY WORLD  //  CYBERSECURITY • PQC • DFIR; align: center; anchor: center; width: 2.05; color: #75dff5; opacity: 0.98; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+          ></a-entity>
+        </a-entity>
+
 
         <!-- =====================================
              PORTFOLIO 4
@@ -372,6 +396,7 @@
     const youtubeClose = document.querySelector("#youtube-close");
     const videoLaunch = document.querySelector("#video-launch");
     const panel3 = document.querySelector("#panel-3");
+    const layer3Welcome = document.querySelector("#layer3-welcome");
     const stackPanels = ["#panel-1", "#panel-1a", "#panel-2", "#panel-4"]
       .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
@@ -382,6 +407,7 @@
     function setArtworkVisible(visible) {
       stackPanels.forEach(panel => panel.setAttribute("visible", visible));
       panel3.setAttribute("visible", !youtubeOpen);
+      layer3Welcome.setAttribute("visible", visible && !youtubeOpen);
     }
 
     function projectVideoPanel() {
