@@ -153,11 +153,8 @@
         crossorigin="anonymous"
       >
 
-      <img
-        id="picLayer4"
-        src="./1lxIGq0NNSBObKEFd6NoaHQ.png"
-        crossorigin="anonymous"
-      >
+      <img id="picLayer4" src="./Cpng.png" crossorigin="anonymous">
+      <img id="picLayer5" src="./PM.png" crossorigin="anonymous">
 
     </a-assets>
 
@@ -255,39 +252,18 @@
         ></a-plane>
 
 
-        <!-- =====================================
-             PORTFOLIO 2 — P1 IMAGE
-             Immediately in front of the animated background.
-             ===================================== -->
-
-        <a-plane
-          id="panel-3"
-          position="0 0 -0.50"
-          width="4.1"
-          height="2.3"
-          material="
-            src: #pic1;
-            shader: flat;
-            transparent: true;
-            opacity: 0.96;
-            depthWrite: false;
-            side: double;
-          "
-        ></a-plane>
+        <!-- LAYER 3 is reserved for the extruded 3D typewriter introduction. -->
 
 
-        <!-- L2 is the P1 artwork above; no duplicate image here. -->
-
-
-        <!-- LAYER 3 VIDEO ANCHOR — transparent geometry retained for video projection. -->
-        <a-plane id="panel-4" position="0 0 0.25" width="1.36" height="0.765"
-          material="shader: flat; transparent: true; opacity: 0; depthWrite: false; side: double"></a-plane>
+        <!-- LAYER 4 — Cpng artwork; video overlay projects over this marker-locked plane. -->
+        <a-plane id="panel-4" position="0 0 0.25" width="4.1" height="2.3"
+          material="src: #picLayer4; shader: flat; transparent: true; opacity: 0.96; depthWrite: false; side: double"></a-plane>
 
         <!-- =====================================
              LAYER 3 — MARKER-LOCKED EXTRUDED 3D WELCOME
              Each line is real TextGeometry with bevelled depth.
              ===================================== -->
-        <a-entity id="layer3-welcome" position="0 0.62 0.65">
+        <a-entity id="layer3-welcome" position="0 0.62 -0.50">
           <a-entity id="welcome-line-1" position="0 0.12 0"
             text-geometry="value: ; font: #welcome-font; size: 0.075; height: 0.014; bevelEnabled: true; bevelThickness: 0.003; bevelSize: 0.002; curveSegments: 4"
             material="color: #b9f5ff; emissive: #1686a8; emissiveIntensity: 0.45; metalness: 0.55; roughness: 0.28"></a-entity>
@@ -306,10 +282,10 @@
           position="0 0 0.95"
           width="4.1"
           height="2.3"
-          material="src: #picLayer4; shader: flat; transparent: true; opacity: 0.96; depthWrite: false; side: double">
+          material="src: #picLayer5; shader: flat; transparent: true; opacity: 0.96; depthWrite: false; side: double">
         </a-plane>
 
-        <!-- Foreground artwork remains marker-locked on the final plane. -->
+        <!-- PM is the foreground artwork on Layer 5. -->
 
 
       </a-entity>
@@ -374,7 +350,7 @@
         await new Promise(resolve => setTimeout(resolve, i === messages.length - 1 ? 0 : 1250));
       }
     }
-    const stackPanels = ["#panel-1", "#panel-2", "#panel-3", "#panel-5"]
+    const stackPanels = ["#panel-1", "#panel-2", "#panel-5"]
       .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
     let markerVisible = false;
