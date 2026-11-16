@@ -253,6 +253,27 @@
 
 
         <!-- =====================================
+             PORTFOLIO 1.5 — P1 IMAGE
+             Immediately in front of the animated background.
+             ===================================== -->
+
+        <a-plane
+          id="panel-1a"
+          position="0 0 -1.00"
+          width="4.1"
+          height="2.3"
+          material="
+            src: #pic1;
+            shader: flat;
+            transparent: true;
+            opacity: 0.96;
+            depthWrite: false;
+            side: double;
+          "
+        ></a-plane>
+
+
+        <!-- =====================================
              PORTFOLIO 2
              ===================================== -->
 
@@ -505,7 +526,7 @@
     const youtubeClose = document.querySelector("#youtube-close");
     const videoLaunch = document.querySelector("#video-launch");
     const panel3 = document.querySelector("#panel-3");
-    const stackPanels = ["#panel-1", "#panel-2", "#panel-4", "#panel-5"]
+    const stackPanels = ["#panel-1", "#panel-1a", "#panel-2", "#panel-4", "#panel-5"]
       .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
     let markerVisible = false;
