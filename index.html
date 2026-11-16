@@ -133,6 +133,7 @@
          ========================================= -->
 
     <a-assets>
+          <a-asset-item id="porsche-panamera" src="./porsche_panamera/scene.gltf"></a-asset-item>
       <a-asset-item id="welcome-font" src="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"></a-asset-item>
 
       <img
@@ -292,70 +293,20 @@
         </a-entity>
 
 
-        <!-- LAYER 4 — PROCEDURAL PANAMERA-INSPIRED 3D CAR, staged on the right. -->
+        <!-- LAYER 4 — ACTUAL PORSCHE PANAMERA GLTF MODEL, staged on the right. -->
         <a-entity id="panel-4" position="1.05 -0.12 -0.40" rotation="0 -18 0" scale="0.54 0.54 0.54">
           <!-- Ground shadow and illuminated display plinth -->
-          <a-cylinder radius="1.62" height="0.035" position="0 -0.30 0" rotation="0 0 0"
+          <a-cylinder radius="2.5" height="0.035" position="0 -0.30 0" rotation="0 0 0"
             material="color: #061521; metalness: 0.7; roughness: 0.32"></a-cylinder>
-          <a-torus radius="1.45" radius-tubular="0.012" position="0 -0.275 0"
+          <a-torus radius="2.32" radius-tubular="0.012" position="0 -0.275 0"
             material="color: #08b9e8; emissive: #087da8; emissiveIntensity: 0.85"></a-torus>
 
-          <!-- Low, wide fastback body -->
-          <a-box position="0 0 0" width="1.28" height="0.30" depth="2.72"
-            material="color: #b9c8d4; metalness: 0.88; roughness: 0.2"></a-box>
-          <a-box position="0 0.105 -0.78" width="1.24" height="0.20" depth="1.12"
-            rotation="-4 0 0" material="color: #dce8ef; metalness: 0.82; roughness: 0.18"></a-box>
-          <a-box position="0 0.105 0.91" width="1.22" height="0.19" depth="0.78"
-            rotation="3 0 0" material="color: #aebdca; metalness: 0.86; roughness: 0.2"></a-box>
-
-          <!-- Panamera-like sloping glasshouse and roof -->
-          <a-box position="0 0.34 0.05" width="1.03" height="0.39" depth="1.48"
-            rotation="-7 0 0" material="color: #102d40; metalness: 0.48; roughness: 0.12; transparent: true; opacity: 0.94"></a-box>
-          <a-box position="0 0.555 0.06" width="0.91" height="0.055" depth="0.88"
-            rotation="-7 0 0" material="color: #c8d9e5; metalness: 0.9; roughness: 0.18"></a-box>
-          <a-box position="0 0.34 -0.50" width="0.96" height="0.018" depth="0.018"
-            material="color: #69dfff; emissive: #1686a8; emissiveIntensity: 0.5"></a-box>
-          <a-box position="0 0.34 0.61" width="0.96" height="0.018" depth="0.018"
-            material="color: #69dfff; emissive: #1686a8; emissiveIntensity: 0.5"></a-box>
-
-          <!-- Dark panoramic side glass and waistline -->
-          <a-box position="-0.526 0.36 0.04" width="0.012" height="0.28" depth="1.25"
-            material="color: #071725; metalness: 0.3; roughness: 0.12"></a-box>
-          <a-box position="0.526 0.36 0.04" width="0.012" height="0.28" depth="1.25"
-            material="color: #071725; metalness: 0.3; roughness: 0.12"></a-box>
-          <a-box position="0 0.12 -1.372" width="1.02" height="0.075" depth="0.025"
-            material="color: #101a24; metalness: 0.7; roughness: 0.25"></a-box>
-          <a-box position="0 0.12 1.372" width="1.02" height="0.075" depth="0.025"
-            material="color: #101a24; metalness: 0.7; roughness: 0.25"></a-box>
-
-          <!-- LED headlights and rear light bar -->
-          <a-box position="-0.43 0.10 -1.385" width="0.27" height="0.055" depth="0.025"
-            material="color: #d8faff; emissive: #7deaff; emissiveIntensity: 1.5"></a-box>
-          <a-box position="0.43 0.10 -1.385" width="0.27" height="0.055" depth="0.025"
-            material="color: #d8faff; emissive: #7deaff; emissiveIntensity: 1.5"></a-box>
-          <a-box position="0 0.13 1.39" width="0.92" height="0.035" depth="0.02"
-            material="color: #ff304d; emissive: #ff163e; emissiveIntensity: 1.15"></a-box>
-
-          <!-- Four alloy wheels: cylinder axes turned across the car -->
-          <a-entity position="-0.66 -0.105 -0.86" rotation="0 0 90">
-            <a-cylinder radius="0.275" height="0.14" material="color: #080e15; metalness: 0.25; roughness: 0.8"></a-cylinder>
-            <a-cylinder radius="0.155" height="0.148" material="color: #9eb4c4; metalness: 0.92; roughness: 0.2"></a-cylinder>
-            <a-cylinder radius="0.065" height="0.155" material="color: #152c3d; metalness: 0.8"></a-cylinder>
-          </a-entity>
-          <a-entity position="0.66 -0.105 -0.86" rotation="0 0 90">
-            <a-cylinder radius="0.275" height="0.14" material="color: #080e15; metalness: 0.25; roughness: 0.8"></a-cylinder>
-            <a-cylinder radius="0.155" height="0.148" material="color: #9eb4c4; metalness: 0.92; roughness: 0.2"></a-cylinder>
-            <a-cylinder radius="0.065" height="0.155" material="color: #152c3d; metalness: 0.8"></a-cylinder>
-          </a-entity>
-          <a-entity position="-0.66 -0.105 0.91" rotation="0 0 90">
-            <a-cylinder radius="0.275" height="0.14" material="color: #080e15; metalness: 0.25; roughness: 0.8"></a-cylinder>
-            <a-cylinder radius="0.155" height="0.148" material="color: #9eb4c4; metalness: 0.92; roughness: 0.2"></a-cylinder>
-            <a-cylinder radius="0.065" height="0.155" material="color: #152c3d; metalness: 0.8"></a-cylinder>
-          </a-entity>
-          <a-entity position="0.66 -0.105 0.91" rotation="0 0 90">
-            <a-cylinder radius="0.275" height="0.14" material="color: #080e15; metalness: 0.25; roughness: 0.8"></a-cylinder>
-            <a-cylinder radius="0.155" height="0.148" material="color: #9eb4c4; metalness: 0.92; roughness: 0.2"></a-cylinder>
-            <a-cylinder radius="0.065" height="0.155" material="color: #152c3d; metalness: 0.8"></a-cylinder>
+          <!-- Original Sketchfab model; GLTF resolves scene.bin and all nine textures relative to scene.gltf. -->
+          <a-entity id="porsche-panamera-model"
+            gltf-model="#porsche-panamera"
+            position="0 0 0"
+            rotation="0 0 0"
+            scale="1 1 1">
           </a-entity>
         </a-entity>
 
