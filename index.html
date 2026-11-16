@@ -142,6 +142,12 @@
       >
 
       <img
+        id="picOpsBackground"
+        src="./Screenshot%202026-11-16%20043637.png"
+        crossorigin="anonymous"
+      >
+
+      <img
         id="picBack"
         src="./eh.png"
         crossorigin="anonymous"
@@ -216,16 +222,28 @@
              PORTFOLIO 1 — BACK
              ===================================== -->
 
+        <!-- LAYER 1 — NEW OPERATIONS-CENTRE MASTER BACKGROUND -->
         <a-plane
-
           id="panel-1"
-
-          position="-2.05 2.558 -1.20"
-
+          position="0 0 -1.55"
           width="8.2"
+          height="4.81"
+          material="
+            src: #picOpsBackground;
+            shader: flat;
+            transparent: true;
+            opacity: 1.0;
+            depthWrite: false;
+            side: double;
+          "
+        ></a-plane>
 
+        <!-- LAYER 2 — PREVIOUS BACKGROUND, MOVED ONE DEPTH LEVEL FORWARD -->
+        <a-plane
+          id="panel-2"
+          position="-2.05 2.558 -0.85"
+          width="8.2"
           height="4.56"
-
           material="
             src: #picBack;
             shader: flat;
@@ -243,8 +261,8 @@
              ===================================== -->
 
         <a-plane
-          id="panel-2"
-          position="0 0 -1.00"
+          id="panel-3"
+          position="0 0 -0.65"
           width="4.1"
           height="2.3"
           material="
@@ -262,14 +280,14 @@
 
 
         <!-- LAYER 3 VIDEO ANCHOR — transparent geometry retained for video projection. -->
-        <a-plane id="panel-3" position="0 0 -0.60" width="1.36" height="0.765"
+        <a-plane id="panel-4" position="0 0 -0.25" width="1.36" height="0.765"
           material="shader: flat; transparent: true; opacity: 0; depthWrite: false; side: double"></a-plane>
 
         <!-- =====================================
              LAYER 3 — MARKER-LOCKED EXTRUDED 3D WELCOME
              Each line is real TextGeometry with bevelled depth.
              ===================================== -->
-        <a-entity id="layer3-welcome" position="0 0.62 -0.525">
+        <a-entity id="layer3-welcome" position="0 0.62 -0.175">
           <a-entity id="welcome-line-1" position="0 0.12 0"
             text-geometry="value: ; font: #welcome-font; size: 0.075; height: 0.014; bevelEnabled: true; bevelThickness: 0.003; bevelSize: 0.002; curveSegments: 4"
             material="color: #b9f5ff; emissive: #1686a8; emissiveIntensity: 0.45; metalness: 0.55; roughness: 0.28"></a-entity>
@@ -282,10 +300,10 @@
         </a-entity>
 
 
-        <!-- LAYER 4 — uploaded artwork, fixed within the marker-locked stack. -->
+        <!-- LAYER 5 — uploaded artwork, moved one depth level forward. -->
         <a-plane
-          id="panel-4"
-          position="0 0 -0.40"
+          id="panel-5"
+          position="0 0 -0.05"
           width="4.1"
           height="2.3"
           material="src: #picLayer4; shader: flat; transparent: true; opacity: 0.96; depthWrite: false; side: double">
@@ -323,7 +341,7 @@
     const youtubeFrame = document.querySelector("#youtube-frame");
     const youtubeClose = document.querySelector("#youtube-close");
     const videoLaunch = document.querySelector("#video-launch");
-    const panel3 = document.querySelector("#panel-3");
+    const panel3 = document.querySelector("#panel-4");
     const layer3Welcome = document.querySelector("#layer3-welcome");
     const welcomeLines = [
       document.querySelector("#welcome-line-1"),
@@ -356,7 +374,7 @@
         await new Promise(resolve => setTimeout(resolve, i === messages.length - 1 ? 0 : 1250));
       }
     }
-    const stackPanels = ["#panel-1", "#panel-2", "#panel-4"]
+    const stackPanels = ["#panel-1", "#panel-2", "#panel-3", "#panel-5"]
       .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
     let markerVisible = false;
