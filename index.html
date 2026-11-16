@@ -386,6 +386,8 @@
         this.timer = null;
         this.ready = false;
         this.playing = false;
+        this.started = false;
+        this.markerActivated = false;
         this.previousFrame = null;
         this.previousSnapshot = null;
         this.applyTexture = () => {
@@ -405,7 +407,7 @@
         this.load();
         if (this.data.start === "marker") {
           this.marker = document.querySelector("#marker");
-          this.onMarkerFound = () => { if (this.ready && !this.playing) this.play(); };
+          this.onMarkerFound = () => { this.markerActivated = true; if (this.ready && !this.started) this.play(); };
           this.marker.addEventListener("markerFound", this.onMarkerFound);
         }
       },
@@ -421,6 +423,7 @@
           this.ready = this.frames.length > 0;
           this.applyTexture();
           if (this.ready && this.data.start === "scene") this.play();
+          if (this.ready && this.data.start === "marker" && this.markerActivated) this.play();
         } catch (error) {
           console.error("GIF playback could not be initialized:", this.data.src, error);
         }
@@ -428,6 +431,8 @@
       play: function () {
         if (!this.ready || this.playing) return;
         this.playing = true;
+        this.started = true;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.index = 0;
         this.previousFrame = null;
         this.previousSnapshot = null;
