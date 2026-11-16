@@ -147,6 +147,12 @@
         crossorigin="anonymous"
       >
 
+      <img
+        id="picLayer4"
+        src="./1lxIGq0NNSBObKEFd6NoaHQ.png"
+        crossorigin="anonymous"
+      >
+
     </a-assets>
 
 
@@ -276,8 +282,14 @@
         </a-entity>
 
 
-        <!-- LAYER 4 — intentionally clear: visual hierarchy keeps attention on the welcome text. -->
-        <a-entity id="panel-4" visible="true"></a-entity>
+        <!-- LAYER 4 — uploaded artwork, fixed within the marker-locked stack. -->
+        <a-plane
+          id="panel-4"
+          position="0 0 -0.40"
+          width="4.1"
+          height="2.3"
+          material="src: #picLayer4; shader: flat; transparent: true; opacity: 0.96; depthWrite: false; side: double">
+        </a-plane>
 
         <!-- LAYER 5 — THE PORSCHE PANAMERA IS THE SINGLE FOREGROUND HERO OBJECT. -->
 
@@ -344,7 +356,7 @@
         await new Promise(resolve => setTimeout(resolve, i === messages.length - 1 ? 0 : 1250));
       }
     }
-    const stackPanels = ["#panel-1", "#panel-2"]
+    const stackPanels = ["#panel-1", "#panel-2", "#panel-4"]
       .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
     let markerVisible = false;
