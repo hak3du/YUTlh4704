@@ -294,22 +294,12 @@
              Offset copies create visible depth/extrusion.
              ===================================== -->
         <a-entity id="layer3-welcome" position="0 0.62 -0.525">
-          <a-entity
-            position="0 0 -0.035"
-            text="value: WELCOME; align: center; anchor: center; width: 2.05; color: #087b9c; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"
-          ></a-entity>
-          <a-entity
-            position="0 0 -0.022"
-            text="value: WELCOME; align: center; anchor: center; width: 2.05; color: #08b9e8; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"
-          ></a-entity>
-          <a-entity
-            position="0 0 -0.009"
-            text="value: WELCOME; align: center; anchor: center; width: 2.05; color: #b9f5ff; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"
-          ></a-entity>
-          <a-entity
-            position="0 -0.19 0"
-            text="value: ENTER MY WORLD  //  CYBERSECURITY • PQC • DFIR; align: center; anchor: center; width: 2.05; color: #75dff5; opacity: 0.98; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"
-          ></a-entity>
+          <a-entity id="welcome-line-1" position="0 0.12 0"
+            text="value: ; align: center; anchor: center; width: 2.8; color: #b9f5ff; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-entity>
+          <a-entity id="welcome-line-2" position="0 -0.10 0"
+            text="value: ; align: center; anchor: center; width: 2.55; color: #08b9e8; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-entity>
+          <a-entity id="welcome-line-3" position="0 -0.34 0"
+            text="value: ; align: center; anchor: center; width: 2.8; color: #75dff5; opacity: 1; shader: msdf; font: https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-entity>
         </a-entity>
 
 
@@ -395,6 +385,37 @@
     const videoLaunch = document.querySelector("#video-launch");
     const panel3 = document.querySelector("#panel-3");
     const layer3Welcome = document.querySelector("#layer3-welcome");
+    const welcomeLines = [
+      document.querySelector("#welcome-line-1"),
+      document.querySelector("#welcome-line-2"),
+      document.querySelector("#welcome-line-3")
+    ];
+
+    // Marker-locked typewriter introduction: reveal each statement, pause, then continue.
+    async function runWelcomeTypewriter() {
+      const messages = [
+        "WELCOME TO THE FUTURE OF TECH",
+        "MY NAME IS TONY",
+        "LET ME TAKE YOU ON A JOURNEY INTO CYBERSECURITY"
+      ];
+      const typeLine = (element, message) => new Promise(resolve => {
+        let index = 0;
+        element.setAttribute("text", "value", "");
+        const timer = setInterval(() => {
+          index += 1;
+          element.setAttribute("text", "value", message.slice(0, index));
+          if (index >= message.length) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 58);
+      });
+
+      for (let i = 0; i < messages.length; i += 1) {
+        await typeLine(welcomeLines[i], messages[i]);
+        await new Promise(resolve => setTimeout(resolve, i === messages.length - 1 ? 0 : 1250));
+      }
+    }
     const stackPanels = ["#panel-1", "#panel-2", "#panel-4", "#panel-5"]
       .map(selector => document.querySelector(selector));
     const YOUTUBE_EMBED = "https://www.youtube-nocookie.com/embed/qGlJVZP9Ie8?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&modestbranding=1";
@@ -543,6 +564,7 @@
 
     scene.addEventListener("loaded", function() {
       sceneReady = true;
+      runWelcomeTypewriter();
       status.innerText = "Camera ready — scan marker";
       finishLoaderWhenReady();
     });
