@@ -228,7 +228,7 @@
 
           id="panel-1"
 
-          animated-gif-texture
+          controlled-gif="src: ./Cyberpunk Hacker Access Granted Animation.gif; start: scene; repeat: false"
 
           position="0 0 -1.20"
 
@@ -300,6 +300,8 @@
 
           id="panel-4"
 
+          controlled-gif="src: ./Anonymous Hacker Access Granted Animation.gif; start: marker; repeat: true; interval: 10000"
+
           position="0 0 -0.40"
 
           width="5.2"
@@ -364,20 +366,112 @@
        JAVASCRIPT
        ========================================= -->
   <script>
-    // Keep the animated GIF texture refreshing inside the WebGL scene.
-    AFRAME.registerComponent("animated-gif-texture", {
-      init: function () {
-        this.lastRefresh = 0;
+    // Decode GIF frames into controllable WebGL textures so playback can be one-shot
+    // or replay on a fixed interval instead of inheriting the GIF's embedded loop.
+    AFRAME.registerComponent("controlled-gif", {
+      schema: {
+        src: { type: "string" },
+        start: { default: "scene" }, // "scene" or "marker"
+        repeat: { default: false },
+        interval: { type: "number", default: 10000 }
       },
-      tick: function (time) {
-        if (time - this.lastRefresh < 50) return;
-        this.lastRefresh = time;
-        const mesh = this.el.getObject3D("mesh");
-        if (!mesh) return;
-        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        materials.forEach(material => {
-          if (material && material.map) material.map.needsUpdate = true;
-        });
+      init: function () {
+        this.canvas = document.createElement("canvas");
+        this.ctx = this.canvas.getContext("2d");
+        this.texture = new THREE.CanvasTexture(this.canvas);
+        this.texture.minFilter = THREE.LinearFilter;
+        this.texture.magFilter = THREE.LinearFilter;
+        this.frames = [];
+        this.index = 0;
+        this.timer = null;
+        this.ready = false;
+        this.playing = false;
+        this.previousFrame = null;
+        this.previousSnapshot = null;
+        this.applyTexture = () => {
+          const mesh = this.el.getObject3D("mesh");
+          if (!mesh) return false;
+          const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          materials.forEach(material => {
+            if (material) {
+              material.map = this.texture;
+              material.transparent = true;
+              material.needsUpdate = true;
+            }
+          });
+          return true;
+        };
+        this.el.addEventListener("object3dset", this.applyTexture);
+        this.load();
+        if (this.data.start === "marker") {
+          this.marker = document.querySelector("#marker");
+          this.onMarkerFound = () => { if (this.ready && !this.playing) this.play(); };
+          this.marker.addEventListener("markerFound", this.onMarkerFound);
+        }
+      },
+      load: async function () {
+        try {
+          const { parseGIF, decompressFrames } = await import("https://esm.sh/gifuct-js@2.1.2");
+          const response = await fetch(this.data.src);
+          if (!response.ok) throw new Error("GIF request failed: " + response.status);
+          const parsed = parseGIF(await response.arrayBuffer());
+          this.frames = decompressFrames(parsed, true);
+          this.canvas.width = parsed.lsd.width;
+          this.canvas.height = parsed.lsd.height;
+          this.ready = this.frames.length > 0;
+          this.applyTexture();
+          if (this.ready && this.data.start === "scene") this.play();
+        } catch (error) {
+          console.error("GIF playback could not be initialized:", this.data.src, error);
+        }
+      },
+      play: function () {
+        if (!this.ready || this.playing) return;
+        this.playing = true;
+        this.index = 0;
+        this.previousFrame = null;
+        this.previousSnapshot = null;
+        this.drawNext();
+      },
+      drawNext: function () {
+        if (!this.playing) return;
+        const frame = this.frames[this.index];
+        if (this.previousFrame) {
+          const prev = this.previousFrame;
+          if (prev.disposalType === 2) {
+            this.ctx.clearRect(prev.dims.left, prev.dims.top, prev.dims.width, prev.dims.height);
+          } else if (prev.disposalType === 3 && this.previousSnapshot) {
+            this.ctx.putImageData(this.previousSnapshot, 0, 0);
+          }
+        }
+        if (frame.disposalType === 3) {
+          this.previousSnapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        } else {
+          this.previousSnapshot = null;
+        }
+        this.ctx.putImageData(
+          new ImageData(frame.patch, frame.dims.width, frame.dims.height),
+          frame.dims.left,
+          frame.dims.top
+        );
+        this.previousFrame = frame;
+        this.texture.needsUpdate = true;
+        const delay = Math.max(20, frame.delay || 100);
+        this.index += 1;
+        if (this.index < this.frames.length) {
+          this.timer = setTimeout(() => this.drawNext(), delay);
+        } else {
+          this.playing = false;
+          if (this.data.repeat) {
+            this.timer = setTimeout(() => this.play(), Math.max(1000, this.data.interval));
+          }
+        }
+      },
+      remove: function () {
+        clearTimeout(this.timer);
+        if (this.marker && this.onMarkerFound) this.marker.removeEventListener("markerFound", this.onMarkerFound);
+        this.el.removeEventListener("object3dset", this.applyTexture);
+        this.texture.dispose();
       }
     });
 
